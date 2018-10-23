@@ -1,0 +1,276 @@
+#+TITLE: Rapport de stage chez BeSport
+#+AUTHOR: Léo Valais (valais_l)
+#+EMAIL: leo.valais@epita.fr
+#+DATE: <2018-11-09 ven.>
+#+LANGUAGE: en
+#+STARTUP: showall latexpreview
+#+OPTIONS: ^:{} H:4
+
+#+LATEX_HEADER: \usepackage{xcolor}
+#+LATEX_HEADER: \usepackage{xspace}
+#+LATEX_HEADER: \usepackage[francais]{babel}
+#+LATEX_HEADER: \usepackage{tikz}
+#+LATEX_HEADER: \usepackage{minted}
+#+LATEX_HEADER: \usepackage{beton}
+#+LATEX_HEADER: \usepackage{euler}
+#+LATEX_HEADER: \usepackage[ttdefault,scale=0.9]{sourcecodepro}
+#+LATEX_HEADER: \usepackage{fontawesome}
+#+LATEX_HEADER: \usepackage{xparse}
+#+LATEX_HEADER: \NoAutoSpaceBeforeFDP
+
+#+LATEX_HEADER: \usetikzlibrary{positioning,shapes}
+
+#+NAME: setup-emacs-and-org
+#+BEGIN_SRC elisp :exports results :results silent
+  (setq org-confirm-babel-evaluate (lambda (l b) nil))
+  (setq org-latex-listings 'minted
+        org-latex-custom-lang-environments '()
+        org-latex-minted-options '(("frame" "leftline")
+                                   ("fontsize" "\\scriptsize")
+                                   ("linenos" ""))
+        org-latex-to-pdf-process '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+                                   "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+                                   "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+#+END_SRC
+
+#+BEGIN_COMMENT
+L'exporter de latex se trouve dans le fichier ox-latex.el
+de org-plus-X/ dans elpa/.
+Peut-être supprimer l'exporter d'example pour générer simplement
+un \begin{example}\end{example} où l'environment peut être définit
+comme on veut.
+#+END_COMMENT
+
+#+LATEX: \newenvironment{ex}{\small\color{gray!50!blue!50!black}}{}
+
+#+MACRO: sc \textsc{$1}
+#+MACRO: lang {{{sc($1)}}}
+#+MACRO: lrde {{{sc(Lrde)}}}
+#+MACRO: inria {{{sc(Inria)}}}
+#+MACRO: cl {{{lang(Common Lisp)}}}
+#+MACRO: ocaml {{{lang(OCaml)}}}
+#+MACRO: html {{{lang(Html)}}}
+
+* Introduction
+Ayant travaillé sur un projet en {{{cl}}} au {{{lrde}}}\(\)[fn:4], je souhaitais trouver
+un stage centré sur la programmation fonctionnelle, de préférence avec un langage
+statiquement typé. J'ai donc accepté le stage que la startup /BeSport/ m'a proposé
+essentiellement pour deux raisons :
+
+1. leur langage de prédilection est {{{ocaml}}}. C'est un langage fondamentalement
+   fonctionnel, statiquement typé développé à l'{{{inria}}}\(\)[fn:5]. Cela correspond donc
+   parfaitement aux attentes que j'avais en termes de technologies.
+2. leurs applicatifs (/backend/, /frontend/, /importation de données/, etc.) sont
+   entièrement développés en {{{ocaml}}}, nottament grâce au
+   [[https://ocsigen.org][projet Ocsigen]], permettant le développement d'applications dites /multi-tiers/.
+   Habituellement développées en {{{lang(JavaScript)}}} (NodeJS pour le backend et
+   ReactJS, Angular ou VueJS pour le frontend le plus souvent), l'utilisation de
+   {{{ocaml}}}, de sa /rigueur/, de son /système de types fort/, sur
+   /l'intégralité de la stack/, permet entres autres :
+   - de partager les structures de données et fonctions entre le code client et
+     le code serveur,
+   - de vérifier statiquement les pages web générées pour être conforme à la
+     [[https://www.w3.org/standards/][norme W3C]], et
+   - toujours bénéficier des technologies {{{lang(JavaScript)}}} de pointe grâce
+     au compilateur [[http://ocsigen.org/js_of_ocaml/][Js_of_ocaml]].
+
+Le sujet proposé sur la convention est :
+#+BEGIN_QUOTE
+Développement de bibliothèques pour l'application Be Sport.
+Le but du stage est de développer de nouveaux modules pour les applications Web
+et mobiles Be Sport : outils d'importation de données, amélioration des outils de
+développement (dans le cadre du projet libre Ocsigen), développement de widgets
+spécifiques, interaction avec la base de données, mise en place de tests de l'application.
+Le stagiaire s'occupera des spécifications en collaboration avec les membres de
+l'équipe, puis travaillera sur un prototype et ira jusqu'à la mise en production.
+#+END_QUOTE
+
+Ce sujet, vaste, permet d'avoir un aperçu des différentes fonctionnalités de BeSport
+tout en exploitant au maximum les possibilités du langage {{{ocaml}}} et du projet
+Ocsigen.
+
+Cependant, en arrivant, il m'a été confié une mission plus urgente que le développement
+de l'application BeSport :
+/la création d'un outil ergonomique de gestion de la documentation du projet Ocsigen pour GitHub Pages/.
+En effet, la documentation est écrite dans un format particulier ([[http://ocsigen-1.inria.fr/ocsimore/dev/manual/wiki][le wikicréole]]) muni d'extensions
+propriétaires, qu'il est nécéssaire de compiler vers de l'{{{html}}} à chaque modification de celle-ci.
+C'était le but de =Ocsimore= et =Ocsiforge=, outils du projet Ocsigen, aujourd'hui dépréciés.
+Les remplacent un outil interne, lourd, monolithique et peu flexible, qu'il m'a été demandé de remplacer.
+Ma mission consiste donc à développer cet outil, simple, ergonomique et flexible, générant les pages
+de documentation au format {{{html}}}, afin de les téléverser vers GitHub Pages.
+
+Mes attentes par rapport à ce stage sont multiples.
+- Découvrir l'utilisation professionnelle de langages fonctionnels et de {{{ocaml}}}
+  en particulier.
+- Découvrir la programmation multi-tiers au travers du projet Ocsigen.
+- Une introduction à l'univers de la startup et les différentes méthodologies
+  de travail telles qu'{{{sc(agile)}}} et {{{sc(scrum)}}} et les pratiques associées.
+- Une première expérience de la collaboration à plus grande échelle que les
+  projets scolaires, avec de plus grands enjeux.
+
+* one_html_of_wiki
+** Cahier des charges
+*** But général
+**** Le wikicréole
+Le projet Ocsigen est vieux de plus de dix ans. Les formats de documentation
+actuellement répandus, tels que le Markdown ou le reStructured Text, n'existaient
+alors pas ou commencaient à émerger. Le seul format alors en vigueur était le format
+/wiki/ de Wikipédia, et toutes ses déclinaisons. C'est l'une d'entre elles qui
+a été choisie pour la documentation du projet Ocsigen : le /wikicréole/.
+Le wikicréole, qui a l'avantage d'être arrivé plus tard que ses concurrents,
+est pensé pour corriger les erreurs de conception que ces derniers ont pu
+commettre, tout en conservant l'esprit et la syntaxe générale de ceux-ci.
+
+#+NAME: lst:example-wiki
+#+CAPTION: Exemple de texte formatté en wikicréole.
+#+begin_listing
+#+INCLUDE: "example.wiki" src text
+#+end_listing
+
+Le listing [[lst:example-wiki]] montre un texte formatté en wikicréole. C'est donc
+un format léger et relativement pratique à utiliser, mais il est nécéssaire de le
+convertir en {{{html}}} pour pouvoir le publier (sur GitHub Pages dans le cas de BeSport).
+
+**** =Ocsimore= et =Ocsiforge=
+C'était le but des outils =Ocsimore= et =Ocsiforge=, autrefois partie du projet
+Ocsigen, aujourd'hui dépéciés et plus maintenus.
+
+Leur rôle était de fournir une infrastructure permettant de gérer la documentation
+d'un ensemble de projets. Ils servaient, entres autres, à:
+- convertir la documentation de chaque projet du wikicréole vers de l'{{{html}}},
+- insérer les pages web dans des /templates/ (de patrons) de page web,
+- gérer les différentes version de la documentation de chaque projet,
+- gérer les permissions sur l'écriture de la documentation,
+- déployer la documentation générée sur internet,
+- proposer un blog, un newsfeed, un blog, etc., et
+- gérer un base d'utilisateurs s'étant inscrits sur le site déployé.
+
+De plus, =Ocsimore= a ajouté au wikicréole un système /d'extensions/ afin d'étendre
+les possibilités du langage. Schématiquement, les extensions fonctionnent de la manière
+suivante:
+- Chaque extension s'enregistre auprès du compilateur (elle donne son nom ---
+  par exemple ~"myext"~ --- et une fonction {{{ocaml}}} --- ~f~).
+- Lorsque l'extension est rencontrée dans fichier --- ~<<myext arg="val" | content>>~ ---
+  le compilateur appelle la fonction associée --- ~f [("arg", "val")] parsed_content~.
+- La fonction retourne alors le code {{{html}}} qui sera mis à la place de l'extension
+  le fichier final.
+Ce puissant système d'extensions naturellement /Turing-complet/
+permet d'étendre considérablement le wikicréole.
+
+Cependant ces projets devenant trop lourds et difficile à maintenir, leur support
+et leur développement a été arrêté et une majorité de leur fonctionnalités
+abandonnées. Mais parmi celles-ci,
+/l'exportation des wikis vers des pages {{{html}}} se devait d'être conservée/
+pour garantir la disponibilité de la documentation aux utilisateurs du projet Ocsigen.
+
+**** =html_of_wiki=
+C'est dans cette optique qu'est né le projet =html_of_wiki=[fn:1] (abbrégé =how=).
+Cet outil reprend une partie du code d'=Ocsimore=, l'analyseur syntaxique (/lexer/)
+et l'analyseur grammatical (/parser/), mais est /complètement dédié au projet Ocsigen/.
+C'est donc un outil /interne/. Son objectif initial devait être simplement de convertir
+le wikicréole en {{{html}}}. Cependant, comme ce projet est en réalité une
+/simplification d'=Ocsimore=/, il est à cause de cela soumis à un certain nombres
+de contraintes, en particulier en termes de condition d'utilisation. Pour comprendre
+en quoi la présence de ces contraintes d'utilisation est indésirable, il faut
+d'abord s'intéresser au fonctionnement de =how=.
+
+1. =how= clone le dépôt git dédié nommé =ocsigen.org-data=, qui contient la documentation
+   de chaque version de chaque projet.
+2. =how= compile ensuite chaque fichier ~*.wiki~ en un fichier {{{html}}}, tout en
+   s'assurant que chaque lien et valide (signale les liens morts) et que les
+   /extensions/ sont bien exécutées.
+3. Les pages {{{html}}} sont ensuite placées dans un dossier =ocsigen.org-repositories=.
+4. Ces pages sont enfin copiées dans la branche ~gh-pages~ du projet auquel elles
+   appartiennent et sont poussées vers GitHub.
+
+Plusieurs inconvénients majeurs se distinguent déjà.
+- Ou bien l'on génère /toute/ la documentation, ou bien l'on ne génère /rien/.
+  Il n'est pas possible de ne compiler que quelques fichiers choisis, ou qu'une
+  version donnée d'un projet donné.
+- /Toute/ la documentation de /toutes/ les versions de /tous/ les projets
+  se trouve dans /un seul/ dépôt =ocsigen.org-data=. Celui-ci est donc trop lourd
+  (plusieurs gigaoctets).
+- Il faut penser manuellement à ajouter les nouvelles versions de chaque projet à
+  ce dépôt.
+- La nécéssité de =ocsigen.org-data= induit une forte désorganisation au sein
+  des projets :
+  - le code d'un projet $X$ se trouve sur ~master~ dans le dépôt $X$,
+  - les wikis de $X$ se trouvent se trouvent dans le dossier $X$ de =ocsigen.org-data=, et
+  - les pages {{{html}}} générées se trouvent sur la branche ~gh-pages~
+    du dépôt $X$.
+
+D'autre part, =how= souffre également des problèmes suivants:
+- La page d'accueil \sloppy[[https://ocsigen.github.io]] doit être traitée comme un cas
+  particulier[fn:2].
+- Les liens générés sont des liens /absolus/, ce qui proscrit toute modification
+  de l'architecture des projets ou du site au risque de casser la plupart des liens.
+- Puisque la gestion des versions est manuelle, la gestion des redirections l'est
+  aussi[fn:3].
+  #+begin_ex
+  Par exemple, la page d'accueil du projet =Eliom= doit être ~eliom/2.8/intro.html~,
+  en supposant que ~2.8~ est la dernière version en date. Il faut alors créer le
+  lien symbolique ~index.html~ à la racine du projet sur la branche ~gh-pages~
+  et le faire pointer vers ~intro.html~. À la sortie de la version ~2.9~, il
+  faut alors penser à placer les wikis dans ~ocsigen.org-data/eliom~, mais aussi
+  à mettre à jour le lien ~eliom/index.html~ décrit ci-dessus.
+  #+end_ex
+- Un certain nombre d'inconvénients mineurs (par exemple, devoir mettre les wikis
+  ayant le rôle de manuel d'utilisation dans un dossier ~src/~).
+
+La figure [[fig:how-arch]] illustre et résume la (lourde) architecture nécéssaire pour faire
+fonctionner =html_of_wiki=.
+
+=how= est donc un outil qui fonctionne, mais lourd, monolithique, peu flexible
+et peu ergonomique. La mission de créer un outil pour le remplacer m'a donc été confiée.
+
+#+NAME: fig:how-arch
+#+CAPTION: Architecture nécéssaire pour faire fonctionner =html_of_wiki=.
+#+begin_figure
+#+INCLUDE: "how-arch.tex" export latex
+#+end_figure
+
+**** =one_html_of_wiki=
+L'idée était donc de simplifier drastiquement =how= mais en le privant du minimum
+de fonctionnalités possible. Ce nouvel outil devait être capable de compiler les
+wikis /un par un/ et *sans examen de dépendances* pour la construction des liens.
+C'est pour cela que cet outil a été nommé =one_html_of_wiki= (abbrégé =ohow=).
+Cet outil se devait d'être /simple/ et /composable/ (plus en accord avec la
+philosophie Unix). Cependant, cela implique la nécéssité d'un
+outil supplémentaire, capable d'utiliser =ohow= pour générer la documentation
+/d'une version entière/ d'un projet donné : =doc_of_project= (abbrégé =dop=).
+Ces deux outils ont donc principalement pour but de :
+- remplacer définitivement =how=,
+- garder la syntaxe wikicréole extensible, et surtout,
+- /reproduire le site existant au minimum à l'identique/ (au mieux avec
+  quelques améliorations).
+
+Le listing [[lst:example-html]] montre le code {{{html}}} généré par =ohow= à partir
+du wikicréole du listing [[lst:example-wiki]].
+
+#+BEGIN_SRC shell :exports none :results silent
+eval $(opam config env)
+/home/vleo/work/besport/html_of_wiki/ohow.byte --headless example.wiki
+#+END_SRC
+
+#+NAME: lst:example-html
+#+CAPTION: Le code {{{html}}} du wiki du listing [[lst:example-wiki]] produit par =one_html_of_wiki=.
+#+INCLUDE: "example.html" src html
+
+L'objectif principal est de remplacer l'utilisation de =how= en /interne/. Cependant,
+dans un second temps et selon mon choix, il est aussi possible de pousser le
+développement de ces outils plus loin, afin de les /distribuer/ et de les rendre
+utilisables par la communauté {{{ocaml}}} (en réalité par tous ceux ayant ou
+souhaitant avoir de la documentation écrite en wikicréole extensible).
+
+* Footnotes
+
+[fn:5] Institut National de Recherche en Informatique et en Automatique
+
+[fn:4] Laboratoire de Recherche et Développement de l'ÉPITA
+
+[fn:3] GitHub Pages permet de définir des redirections sous forme de liens symboliques. Consulter l'annexe TODO pour plus d'informations.
+
+[fn:2] Cela est dû au fonctionnement de GitHub Pages. Pour plus d'information consulter l'annexe TODO sur GitHub Pages.
+
+[fn:1] Il existe en {{{ocaml}}} une convention de nommage pour les fonctions de conversion. Par exemple, la fonction standard qui convertit un ~int~ en ~string~ s'appelle ~string_of_int~.
+C'est en suivant cette convention que l'outil qui transforme du wikicréole en {{{html}}} s'appelle =html_of_wiki=.

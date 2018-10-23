@@ -1,0 +1,100 @@
+%% Some Tikz functions to build a filesystem-like tree.
+%% TODO: remove the necessity of the parent node for fsnode.
+%% TODO: command \fscdots that automatically insterts an new ellipsis leaf
+\makeatletter
+\newcounter{fs@nodes}
+\newcommand{\fsleaf}[3][fsleaf]{% [opts], name, text
+  \node[below=\value{fs@cnt\fs@parent} of \fs@parent] (fsanch-#2) {};%
+  \node[right=.25 of fsanch-#2,#1] (#2) {#3};%
+  \draw (\fs@parent) |- (#2);%
+  \stepcounter{fs@cnt\fs@parent} % add .west and place it on top of the command
+}
+\NewDocumentEnvironment{fsnode}{O{fsnode}mmm}{% [opts], parent, name, text
+  \newcounter{fs@cnt#3}
+  \fsleaf[#1]{#3}{#4}%
+  \def\fs@parent{#3}
+}{%
+  \addtocounter{fs@cnt#2}{\value{fs@cnt#3}}%
+}
+\newenvironment{fsroot}[3][fsnode]{%
+  \newcounter{fs@cnt#2}
+  \def\fs@parent{#2}
+  \node[#1] (#2) {#3};%
+}{}
+\newcommand{\fsdots}{\fsleaf{fsdots-\fs@parent}{\(\cdots\)}}
+\makeatother
+
+
+\hspace*{-2cm}
+\begin{tikzpicture}[x=5mm,y=5mm,
+                    dir/.style={},
+                    fsnode/.style={},
+                    fsleaf/.style={}]
+  \begin{fsroot}{ood}{ocsigen.org-data}
+    \begin{fsnode}{ood}{ood-eliom}{Eliom}
+      \begin{fsnode}{ood-eliom}{ood-eliom10}{v1.0}
+        \fsdots
+      \end{fsnode}
+      \begin{fsnode}{ood-eliom}{ood-eliom11}{v1.1}
+        \begin{fsnode}{ood-eliom11}{ood-eliom11-man}{manual}
+          \begin{fsnode}{ood-eliom11-man}{ood-eliom11-mansrc}{src}
+            \fsleaf{ood-intro}{intro.wiki}
+            \fsleaf{ood-intro}{config.wiki}
+            \fsdots
+          \end{fsnode}
+        \end{fsnode}
+        \begin{fsnode}{ood-eliom11}{ood-eliom11-api}{api}
+          \begin{fsnode}{ood-eliom11-api}{ood-eliom11-api-client}{client}
+            \fsdots
+          \end{fsnode}
+          \begin{fsnode}{ood-eliom11-api}{ood-eliom11-api-server}{server}
+            \fsdots
+          \end{fsnode}
+          \fsdots
+        \end{fsnode}
+      \end{fsnode}
+      \fsdots
+      \fsleaf{ood-template}{template.wiki}
+    \end{fsnode}
+    \fsdots
+  \end{fsroot}
+
+  \node[above=of ood] (clone) {\footnotesize\texttt{git clone} de tous les wikis};
+  \draw[->] (clone) -- (ood);
+
+  \begin{fsroot}[fsnode,right=7 of ood]{oor}{ocsigen.org-repositories}
+    \begin{fsnode}{oor}{oor-eliom}{Eliom}
+      \begin{fsnode}{oor-eliom}{oor-eliom10}{v1.0}
+        \fsdots
+      \end{fsnode}
+      \begin{fsnode}{oor-eliom}{oor-eliom11}{v1.1}
+        \begin{fsnode}{oor-eliom11}{oor-eliom11-manual}{manual}
+          \fsleaf{oor-intro}{intro.html}
+          \fsleaf{oor-config}{config.html}
+          \fsdots
+        \end{fsnode}
+        \begin{fsnode}{oor-eliom11}{oor-eliom11-api}{api}
+          \begin{fsnode}{oor-eliom11-api}{oor-eliom11-api-client}{client}
+            \fsdots
+          \end{fsnode}
+          \begin{fsnode}{oor-eliom11-api}{oor-eliom11-api-server}{server}
+            \fsdots
+          \end{fsnode}
+          \fsdots
+        \end{fsnode}
+      \end{fsnode}
+      \fsdots
+    \end{fsnode}
+    \fsdots
+  \end{fsroot}
+
+  \draw[->] (ood) -- (oor) node [midway,fill=white] {\footnotesize Compilation};
+
+  \begin{fsroot}[fsnode,right=5 of oor]{ghp}{eliom@gh-pages}
+    \fsleaf{ghp-dst}{\faCircle}
+    \fsleaf{ghp-index}{index.html}
+  \end{fsroot}
+
+  \draw[->] (oor) -> (ghp-dst) node [midway,fill=white] {\footnotesize copie};
+  \draw[->] (ghp-index) -- (oor-intro) node [midway,fill=white] {\footnotesize éditer les liens symboliques};
+\end{tikzpicture}

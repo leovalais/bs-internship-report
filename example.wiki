@@ -1,0 +1,17 @@
+Un paragraphe de wikicréole.
+
+Le **gras** entre deux astérisques, //l'italique// entre deux barres obliques
+
+= Listes (en-tête de premier niveau préfixée par un =)
+== Listes non-numérotées
+
+* le wikicréole
+** permet
+** de faire
+* bien plus
+
+== Listes numérotées
+
+# des tableaux
+# des liens: [[www.google.fr|lien vers google]]
+# etc.

@@ -2,22 +2,23 @@
 #+AUTHOR: Léo Valais (valais_l)
 #+EMAIL: leo.valais@epita.fr
 #+DATE: <2018-11-09 ven.>
-#+LANGUAGE: en
-#+STARTUP: showall latexpreview
-#+OPTIONS: ^:{} H:4
+#+LANGUAGE: fr
+#+STARTUP: overview latexpreview
+#+OPTIONS: ^:{} ':t H:4
 
 #+LATEX_HEADER: \usepackage{xcolor}
 #+LATEX_HEADER: \usepackage{xspace}
 #+LATEX_HEADER: \usepackage[francais]{babel}
 #+LATEX_HEADER: \usepackage{tikz}
 #+LATEX_HEADER: \usepackage{minted}
-#+LATEX_HEADER: \usepackage{beton}
-#+LATEX_HEADER: \usepackage{euler}
-#+LATEX_HEADER: \usepackage[ttdefault,scale=0.9]{sourcecodepro}
+# #+LATEX_HEADER: \usepackage{beton}
+# #+LATEX_HEADER: \usepackage{euler}
+# #+LATEX_HEADER: \usepackage[ttdefault,scale=0.9]{sourcecodepro}
 #+LATEX_HEADER: \usepackage{fontawesome}
 #+LATEX_HEADER: \usepackage{xparse}
-#+LATEX_HEADER: \NoAutoSpaceBeforeFDP
+#+LATEX_HEADER: \usepackage[in]{fullpage}
 
+#+LATEX_HEADER: \NoAutoSpaceBeforeFDP
 #+LATEX_HEADER: \usetikzlibrary{positioning,shapes}
 
 #+NAME: setup-emacs-and-org
@@ -42,6 +43,7 @@ comme on veut.
 #+END_COMMENT
 
 #+LATEX: \newenvironment{ex}{\small\color{gray!50!blue!50!black}}{}
+#+LATEX: \newenvironment{note}{\small\color{gray!50!orange!50!black}\textbf{Note:}\par}{}
 
 #+MACRO: sc \textsc{$1}
 #+MACRO: lang {{{sc($1)}}}
@@ -50,6 +52,17 @@ comme on veut.
 #+MACRO: cl {{{lang(Common Lisp)}}}
 #+MACRO: ocaml {{{lang(OCaml)}}}
 #+MACRO: html {{{lang(Html)}}}
+#+MACRO: wikiext \texttt{<}\texttt{<}\texttt{$1}\texttt{>}\texttt{>}
+#+MACRO: htmltag \texttt{<}\texttt{$1}\texttt{>}
+
+#+BEGIN_COMMENT
+TODO
+- étoffer l'introduction
+- finir et peaufiner [[fig:how-arch]]
+- faire la présentation de BeSport
+- intégrer mon thème latex
+- styliser les tableaux
+#+END_COMMENT
 
 * Introduction
 Ayant travaillé sur un projet en {{{cl}}} au {{{lrde}}}\(\)[fn:4], je souhaitais trouver
@@ -109,9 +122,8 @@ Mes attentes par rapport à ce stage sont multiples.
   projets scolaires, avec de plus grands enjeux.
 
 * one_html_of_wiki
-** Cahier des charges
-*** But général
-**** Le wikicréole
+** But général<<sec:ohow-but-grl>>
+*** Le wikicréole
 Le projet Ocsigen est vieux de plus de dix ans. Les formats de documentation
 actuellement répandus, tels que le Markdown ou le reStructured Text, n'existaient
 alors pas ou commencaient à émerger. Le seul format alors en vigueur était le format
@@ -131,7 +143,7 @@ Le listing [[lst:example-wiki]] montre un texte formatté en wikicréole. C'est 
 un format léger et relativement pratique à utiliser, mais il est nécéssaire de le
 convertir en {{{html}}} pour pouvoir le publier (sur GitHub Pages dans le cas de BeSport).
 
-**** =Ocsimore= et =Ocsiforge=
+*** =Ocsimore= et =Ocsiforge=
 C'était le but des outils =Ocsimore= et =Ocsiforge=, autrefois partie du projet
 Ocsigen, aujourd'hui dépéciés et plus maintenus.
 
@@ -150,7 +162,7 @@ les possibilités du langage. Schématiquement, les extensions fonctionnent de l
 suivante:
 - Chaque extension s'enregistre auprès du compilateur (elle donne son nom ---
   par exemple ~"myext"~ --- et une fonction {{{ocaml}}} --- ~f~).
-- Lorsque l'extension est rencontrée dans fichier --- ~<<myext arg="val" | content>>~ ---
+- Lorsque l'extension est rencontrée dans fichier --- {{{wikiext(myext arg="val" | content)}}} ---
   le compilateur appelle la fonction associée --- ~f [("arg", "val")] parsed_content~.
 - La fonction retourne alors le code {{{html}}} qui sera mis à la place de l'extension
   le fichier final.
@@ -163,7 +175,7 @@ abandonnées. Mais parmi celles-ci,
 /l'exportation des wikis vers des pages {{{html}}} se devait d'être conservée/
 pour garantir la disponibilité de la documentation aux utilisateurs du projet Ocsigen.
 
-**** =html_of_wiki=
+*** =html_of_wiki=
 C'est dans cette optique qu'est né le projet =html_of_wiki=[fn:1] (abbrégé =how=).
 Cet outil reprend une partie du code d'=Ocsimore=, l'analyseur syntaxique (/lexer/)
 et l'analyseur grammatical (/parser/), mais est /complètement dédié au projet Ocsigen/.
@@ -229,7 +241,7 @@ et peu ergonomique. La mission de créer un outil pour le remplacer m'a donc ét
 #+INCLUDE: "how-arch.tex" export latex
 #+end_figure
 
-**** =one_html_of_wiki=
+*** =one_html_of_wiki=
 L'idée était donc de simplifier drastiquement =how= mais en le privant du minimum
 de fonctionnalités possible. Ce nouvel outil devait être capable de compiler les
 wikis /un par un/ et *sans examen de dépendances* pour la construction des liens.
@@ -240,6 +252,8 @@ outil supplémentaire, capable d'utiliser =ohow= pour générer la documentation
 /d'une version entière/ d'un projet donné : =doc_of_project= (abbrégé =dop=).
 Ces deux outils ont donc principalement pour but de :
 - remplacer définitivement =how=,
+- avoir la possibilité de placer la documentation des projets ailleurs que
+  dans ~ocsigen.org-data~ et de s'en débarasser,
 - garder la syntaxe wikicréole extensible, et surtout,
 - /reproduire le site existant au minimum à l'identique/ (au mieux avec
   quelques améliorations).
@@ -262,7 +276,123 @@ développement de ces outils plus loin, afin de les /distribuer/ et de les rendr
 utilisables par la communauté {{{ocaml}}} (en réalité par tous ceux ayant ou
 souhaitant avoir de la documentation écrite en wikicréole extensible).
 
+** Cahier des charges
+Comme expliqué dans la [[sec:ohow-but-grl][section "But général"]], le cahier des charges pour ce projet
+dépasse la simple réalisation de l'outil =one_html_of_wiki=. Les principaux
+objectifs de cette mission sont les suivants.
+
+- Remplacer =html_of_wiki= par la combinaison de deux outils: =one_html_of_wiki=,
+  le compilateur wikicréole \rightarrow {{{html}}} qui opère fichier par fichier et
+  =doc_of_project=, qui opère version de projet par version de projet,
+- conserver le même format de wikicréole et les même extensions (100% rétrocompatible avec =how=),
+- être capable, à l'aide de ces outils, de regénérer le site [[https://ocsigen.org]]
+  à l'identique,
+- l'améliorer et régler ses différents problèmes techniques (barre de recherche,
+  design, etc.),
+- trouver une solution pour se passer du dépôt ~ocsigen.org-data~, et,
+- éventuellement rendre =ohow= suffisament indépendant du projet Ocsigen pour
+  pouvoir le diffuser et qu'il puisse être utilisé sur d'autres projets.
+
+L'on commence par spécifier le langage que doit supporter =ohow=, puis l'on dresse
+son cahier des charges détaillé. Nous continuons par la description de celui
+de =dop= et finissions par la liste des objectifs à atteindre quant à l'organisation
+du projet Ocsigen.
+
+*** Le langage à supporter : le wikicréole extensible
+**** Le wikicréole
+La spécification du langage wikicréole utilisée par le projet Ocsigen est décrite
+dans l'annexe TODO.
+
+**** Les extensions
+La documentation du projet Ocsigen s'appuie fortement sur une construction syntaxique
+particulière : /les extensions/. Ce sont des constructions non-standard du wikicréole
+développées afin d'augmenter les capacités du langage en permettant l'éxecution de
+code {{{ocaml}}} /pendant la compilation/ du fichier.
+
+Concrètement, les extensions ont la syntaxe suivante:
+#+BEGIN_SRC text
+  <<extension_name attr1="val1" attr2="val2" ... attrN="valN" | content>>
+#+END_SRC
+
+#+begin_note
+- Les valeurs (~val1~, ~val2~, etc.) des attributs contiennent du /texte brut/,
+  c'est-à-dire non compilé récursivement.
+- En revanche, le contenu ~content~ de l'extension est, elle, compilée et peut
+  donc contenir du wikicréole /arbitrairement complexe/, s'étendant possiblement
+  sur plusieurs lignes et pouvant lui aussi /contenir des extensions/.
+#+end_note
+
+L'auteur de chaque extension doit alors /l'enregistrer auprès du compilateur/ de
+wikicréole en lui fournissant le *nom* de l'extension (ici ~"extension_name"~) ainsi
+qu'une *fonction {{{ocaml}}}* qui sera appelée à chaque fois que l'extension
+est rencontrée dans le fichier en train d'être compilé. Cette fonction doit
+retourner du code {{{html}}} qui sera positionné à l'endroit où se situe l'extension
+dans la page web produite.
+
+Le listing [[lst:ext-ex]] illustre comment ajouter une extension au compilateur décrit dans
+le paragraphe suivant et permet de comprendre aisément en quoi ce système est très
+puissant de par sa capacité à excécuter du code arbitrairement complexe au coeur du
+processus de compilation.
+
+#+NAME: lst:ext-ex
+#+CAPTION: Code {{{ocaml}}} nécéssaire pour ajouter l'extension ~"colored"~.
+#+INCLUDE: "ext-ex.ml" src ocaml
+
+Le tableau [[tab:ext-to-support]] liste et décrit les extensions (et leur attributs[fn:7])
+définies pour le projet Ocsigen que =ohow= doit pourvoir supporter[fn:6].
+
+#+NAME: tab:ext-to-support
+#+CAPTION: Extensions Ocsigen que =ohow= doit impérativement supporter.
+#+begin_table
+#+LATEX: \small
+| Nom                    | Attributs                          | Courte description                            |
+|------------------------+------------------------------------+-----------------------------------------------|
+| ~a_api~                | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API du projet donné.    |
+| ~a_api_code~           | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API (implémentation).   |
+| ~a_api_type~           | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API (déclarations).     |
+| ~a_file~               | ~src~                              | Insère un lien vers un fichier quelconque.    |
+| ~a_img~                | ~src~                              | Insère une image.                             |
+| ~a_manual~             | ~project~, ~chapter~, ~version~    | Insère un lien vers le chapitre donné.        |
+| ~client-server-switch~ |                                    | Insère un lien API client \leftrightarrow API serveur.      |
+| ~code~                 | ~language~                         | Insère un bloc de code.                       |
+| ~code-inline~          | ~language~                         | Insère du code à l'intérieur d'un paragraphe. |
+| ~div~                  |                                    | Insère un élément {{{html}}} ~<div>~.         |
+| ~doctree~              |                                    | Insère le menu du projet.                     |
+| ~docversion~           |                                    | Insère une liste de versions à afficher.      |
+| ~googlesearch~         |                                    | Insère une barre de Google Search.            |
+| ~pre~                  |                                    | Insère un élément {{{html}}} ~<pre>~.         |
+| ~script~               | ~src~                              | Insère un script {{{lang(JavaScript)}}}.      |
+| ~span~                 |                                    | Insère un élément {{{html}}} ~<span>~.        |
+| ~wip~                  |                                    | Marque un contenu "Work In Progress".         |
+| ~wip-inline~           |                                    | De même mais à l'intérieur d'un paragraphe.   |
+#+end_table
+
+**** Le compilateur wikicréole \rightarrow {{{html}}}<<para:cmp-wiki-html>>
+Comme expliqué dans la section [[sec:ohow-but-grl]], =ohow= doit être construit sur
+=how=, lui-même écrit à partir de =Ocsimore= et =Ocsiforge=. Ces derniers avaient
+implémenté un compilateur wikicréole \rightarrow {{{html}}} écrit en {{{ocaml}}} afin de
+pouvoir remplir leur fonction. Ce compilateur a été repris par =how= et
+/doit également être réutilisé par =ohow=/.
+
+Cependant celui-ci doit d'être /modifié/, nottament ce qui concerne la génération
+de liens entre les pages web. En effet, les liens générés sont des /liens absolus/,
+trop rigides (il est impossible de tester localement le site web généré puisque les
+liens pointent vers des URLs comme [[https://ocsigen.org/project/page]]). Il faut donc
+modifier les procédures concernées afin de générer les /liens relatifs/, plus flexibles,
+mais plus contraignants à implémenter.
+
+*** L'outil principal : =one_html_of_wiki=
+La fonction de =one_html_of_wiki= est /simple/ et /unique/:
+#+BEGIN_QUOTE
+Pouvoir compiler les fichiers wikicréole *individuellement* et *sans examen de dépendances* (compilation *isolée*).
+#+END_QUOTE
+
 * Footnotes
+
+[fn:7] Toutes les extensions acceptent les attributs ~class~ et ~id~ correspondant aux attributs {{{html}}} du même nom.
+
+[fn:6] Les descriptions données sont simplement indicatives. Les extensions complexes seront décrites avec plus de précision
+lors de l'explication des problèmes techniques qu'elles causent.
 
 [fn:5] Institut National de Recherche en Informatique et en Automatique
 
@@ -272,5 +402,6 @@ souhaitant avoir de la documentation écrite en wikicréole extensible).
 
 [fn:2] Cela est dû au fonctionnement de GitHub Pages. Pour plus d'information consulter l'annexe TODO sur GitHub Pages.
 
-[fn:1] Il existe en {{{ocaml}}} une convention de nommage pour les fonctions de conversion. Par exemple, la fonction standard qui convertit un ~int~ en ~string~ s'appelle ~string_of_int~.
-C'est en suivant cette convention que l'outil qui transforme du wikicréole en {{{html}}} s'appelle =html_of_wiki=.
+[fn:1] Il existe en {{{ocaml}}} une convention de nommage pour les fonctions de conversion. Par exemple, la fonction standard
+qui convertit un ~int~ en ~string~ s'appelle ~string_of_int~. C'est en suivant cette convention que l'outil qui transforme du
+wikicréole en {{{html}}} s'appelle =html_of_wiki=.

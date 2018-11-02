@@ -17,6 +17,7 @@
 #+LATEX_HEADER: \usepackage{fontawesome}
 #+LATEX_HEADER: \usepackage{xparse}
 #+LATEX_HEADER: \usepackage[in]{fullpage}
+#+LATEX_HEADER: \usepackage{flatbox/flatbox}
 
 #+LATEX_HEADER: \NoAutoSpaceBeforeFDP
 #+LATEX_HEADER: \usetikzlibrary{positioning,shapes}
@@ -42,18 +43,20 @@ un \begin{example}\end{example} où l'environment peut être définit
 comme on veut.
 #+END_COMMENT
 
-#+LATEX: \newenvironment{ex}{\small\color{gray!50!blue!50!black}}{}
-#+LATEX: \newenvironment{note}{\small\color{gray!50!orange!50!black}\textbf{Note:}\par}{}
+#+LATEX: \newenvironment{note}{\begin{noteffbox}{Note}\small}{\end{noteffbox}}
+#+LATEX: \newenvironment{ex}{\begin{exampleffbox}{Exemple}\small}{\end{exampleffbox}}
 
-#+MACRO: sc \textsc{$1}
-#+MACRO: lang {{{sc($1)}}}
-#+MACRO: lrde {{{sc(Lrde)}}}
-#+MACRO: inria {{{sc(Inria)}}}
-#+MACRO: cl {{{lang(Common Lisp)}}}
-#+MACRO: ocaml {{{lang(OCaml)}}}
-#+MACRO: html {{{lang(Html)}}}
-#+MACRO: wikiext \texttt{<}\texttt{<}\texttt{$1}\texttt{>}\texttt{>}
+#+MACRO: acr \textsc{$1}
+#+MACRO: lrde {{{acr(Lrde)}}}
+#+MACRO: inria {{{acr(Inria)}}}
+#+MACRO: api {{{acr(Api)}}}
+#+MACRO: lang $1
+#+MACRO: cl Common Lisp
+#+MACRO: ocaml OCaml
+#+MACRO: html {{{acr(Html)}}}
 #+MACRO: htmltag \texttt{<}\texttt{$1}\texttt{>}
+#+MACRO: wikiext \texttt{<}\texttt{<}\texttt{$1}\texttt{>}\texttt{>}
+#+MACRO: wikilink \sloppy\texttt{[[$1]]}
 
 #+BEGIN_COMMENT
 TODO
@@ -117,9 +120,9 @@ Mes attentes par rapport à ce stage sont multiples.
   en particulier.
 - Découvrir la programmation multi-tiers au travers du projet Ocsigen.
 - Une introduction à l'univers de la startup et les différentes méthodologies
-  de travail telles qu'{{{sc(agile)}}} et {{{sc(scrum)}}} et les pratiques associées.
+  de travail telles qu'{{{acr(agile)}}} et {{{acr(scrum)}}} et les pratiques associées.
 - Une première expérience de la collaboration à plus grande échelle que les
-  projets scolaires, avec de plus grands enjeux.
+  projets scolaires, avec des enjeux réels.
 
 * one_html_of_wiki
 ** But général<<sec:ohow-but-grl>>
@@ -135,9 +138,7 @@ commettre, tout en conservant l'esprit et la syntaxe générale de ceux-ci.
 
 #+NAME: lst:example-wiki
 #+CAPTION: Exemple de texte formatté en wikicréole.
-#+begin_listing
 #+INCLUDE: "example.wiki" src text
-#+end_listing
 
 Le listing [[lst:example-wiki]] montre un texte formatté en wikicréole. C'est donc
 un format léger et relativement pratique à utiliser, mais il est nécéssaire de le
@@ -163,7 +164,7 @@ suivante:
 - Chaque extension s'enregistre auprès du compilateur (elle donne son nom ---
   par exemple ~"myext"~ --- et une fonction {{{ocaml}}} --- ~f~).
 - Lorsque l'extension est rencontrée dans fichier --- {{{wikiext(myext arg="val" | content)}}} ---
-  le compilateur appelle la fonction associée --- ~f [("arg", "val")] parsed_content~.
+  le compilateur appelle la fonction associée --- ~f [("arg", "val")] content~.
 - La fonction retourne alors le code {{{html}}} qui sera mis à la place de l'extension
   le fichier final.
 Ce puissant système d'extensions naturellement /Turing-complet/
@@ -219,7 +220,7 @@ D'autre part, =how= souffre également des problèmes suivants:
 - Puisque la gestion des versions est manuelle, la gestion des redirections l'est
   aussi[fn:3].
   #+begin_ex
-  Par exemple, la page d'accueil du projet =Eliom= doit être ~eliom/2.8/intro.html~,
+  La page d'accueil du projet =Eliom= doit être ~eliom/2.8/intro.html~,
   en supposant que ~2.8~ est la dernière version en date. Il faut alors créer le
   lien symbolique ~index.html~ à la racine du projet sur la branche ~gh-pages~
   et le faire pointer vers ~intro.html~. À la sortie de la version ~2.9~, il
@@ -315,11 +316,11 @@ Concrètement, les extensions ont la syntaxe suivante:
 #+END_SRC
 
 #+begin_note
-- Les valeurs (~val1~, ~val2~, etc.) des attributs contiennent du /texte brut/,
-  c'est-à-dire non compilé récursivement.
-- En revanche, le contenu ~content~ de l'extension est, elle, compilée et peut
-  donc contenir du wikicréole /arbitrairement complexe/, s'étendant possiblement
-  sur plusieurs lignes et pouvant lui aussi /contenir des extensions/.
+- Les attributs sont conçus pour avoir des valeurs (~val1~, ~val2~, etc.) contenant
+  du /texte brut/ à utiliser comme paramètre pour la fonction {{{ocaml}}}.
+- En revanche, le contenu ~content~ de l'extension peut contenir du wikicréole,
+  /arbitrairement complexe/, s'étendant possiblement sur plusieurs lignes, pouvant
+  lui aussi /contenir des extensions/ et est donc conçu pour être /compilé récursivement/.
 #+end_note
 
 L'auteur de chaque extension doit alors /l'enregistrer auprès du compilateur/ de
@@ -345,30 +346,36 @@ définies pour le projet Ocsigen que =ohow= doit pourvoir supporter[fn:6].
 #+CAPTION: Extensions Ocsigen que =ohow= doit impérativement supporter.
 #+begin_table
 #+LATEX: \small
-| Nom                    | Attributs                          | Courte description                            |
-|------------------------+------------------------------------+-----------------------------------------------|
-| ~a_api~                | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API du projet donné.    |
-| ~a_api_code~           | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API (implémentation).   |
-| ~a_api_type~           | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API (déclarations).     |
-| ~a_file~               | ~src~                              | Insère un lien vers un fichier quelconque.    |
-| ~a_img~                | ~src~                              | Insère une image.                             |
-| ~a_manual~             | ~project~, ~chapter~, ~version~    | Insère un lien vers le chapitre donné.        |
-| ~client-server-switch~ |                                    | Insère un lien API client \leftrightarrow API serveur.      |
-| ~code~                 | ~language~                         | Insère un bloc de code.                       |
-| ~code-inline~          | ~language~                         | Insère du code à l'intérieur d'un paragraphe. |
-| ~div~                  |                                    | Insère un élément {{{html}}} ~<div>~.         |
-| ~doctree~              |                                    | Insère le menu du projet.                     |
-| ~docversion~           |                                    | Insère une liste de versions à afficher.      |
-| ~googlesearch~         |                                    | Insère une barre de Google Search.            |
-| ~pre~                  |                                    | Insère un élément {{{html}}} ~<pre>~.         |
-| ~script~               | ~src~                              | Insère un script {{{lang(JavaScript)}}}.      |
-| ~span~                 |                                    | Insère un élément {{{html}}} ~<span>~.        |
-| ~wip~                  |                                    | Marque un contenu "Work In Progress".         |
-| ~wip-inline~           |                                    | De même mais à l'intérieur d'un paragraphe.   |
+|------------------------+------------------------------------+---------------------------------------------------|
+| Nom                    | Attributs                          | Courte description                                |
+|------------------------+------------------------------------+---------------------------------------------------|
+| ~a_api_code~           | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API (implémentation).       |
+| ~a_api_type~           | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API (déclarations).         |
+| ~a_api~                | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API du projet donné.        |
+| ~a_file~               | ~src~                              | Insère un lien vers un fichier quelconque.        |
+| ~a_img~                | ~src~                              | Insère une image.                                 |
+| ~a_manual~             | ~project~, ~chapter~, ~version~    | Insère un lien vers le chapitre donné.            |
+| ~client-server-switch~ |                                    | Insère un lien API client \leftrightarrow API serveur.          |
+| ~code-inline~          | ~language~                         | Insère du code à l'intérieur d'un paragraphe.     |
+| ~code~                 | ~language~                         | Insère un bloc de code.                           |
+| ~div~                  |                                    | Insère un élément {{{html}}} ~<div>~.             |
+| ~doctree~              |                                    | Insère le menu du projet.                         |
+| ~docversion~           |                                    | Insère une liste de versions à afficher.          |
+| ~drawer~               |                                    | Insère un menu latéral déroulant.                 |
+| ~googlesearch~         |                                    | Insère une barre de Google Search.                |
+| ~nav~                  |                                    | Insère un élément {{{html}}} ~<nav>~.             |
+| ~pre~                  |                                    | Insère un élément {{{html}}} ~<pre>~.             |
+| ~reason-switch~        |                                    | Convertit le {{{ocaml}}} en {{{lang(ReasonML)}}}. |
+| ~script~               | ~src~                              | Insère un script {{{lang(JavaScript)}}}.          |
+| ~span~                 |                                    | Insère un élément {{{html}}} ~<span>~.            |
+| ~wip-inline~           |                                    | De même mais à l'intérieur d'un paragraphe.       |
+| ~wip~                  |                                    | Marque un contenu "Work In Progress".             |
+| extension sans nom     |                                    | N'insère rien : a fonction de commentaire.        |
+|------------------------+------------------------------------+---------------------------------------------------|
 #+end_table
 
-**** Le compilateur wikicréole \rightarrow {{{html}}}<<para:cmp-wiki-html>>
-Comme expliqué dans la section [[sec:ohow-but-grl]], =ohow= doit être construit sur
+**** Le compilateur wikicréole \rightarrow {{{html}}}
+Comme expliqué dans la section [[sec:ohow-but-grl]], =ohow= doit être construit par dessus
 =how=, lui-même écrit à partir de =Ocsimore= et =Ocsiforge=. Ces derniers avaient
 implémenté un compilateur wikicréole \rightarrow {{{html}}} écrit en {{{ocaml}}} afin de
 pouvoir remplir leur fonction. Ce compilateur a été repris par =how= et
@@ -382,12 +389,181 @@ modifier les procédures concernées afin de générer les /liens relatifs/, plu
 mais plus contraignants à implémenter.
 
 *** L'outil principal : =one_html_of_wiki=
-La fonction de =one_html_of_wiki= est /simple/ et /unique/:
+La fonction de =one_html_of_wiki= est /simple/ et /unique/[fn:10]:
 #+BEGIN_QUOTE
 Pouvoir compiler les fichiers wikicréole *individuellement* et *sans examen de dépendances* (compilation *isolée*).
 #+END_QUOTE
 
+C'est-à-dire que =ohow= peut être appelé à compiler un fichier ~mydoc.wiki~ et
+doit produire ~mydoc.html~, document {{{html}}} consultable depuis un navigateur
+web et conforme à la [[https://www.w3.org/standards/][norme W3C]]. L'outil doit avoir généré des liens /relatifs/ et
+/valides/ sans vérifier que la page de destination existe.
+
+**** Objectifs
+- C'est un outil en /ligne de commande/, écrit en {{{ocaml}}} qui doit réutiliser le
+  compilateur wikicréole \rightarrow {{{html}}} de =how=.
+- Le fichier wikicréole à compiler ne doit pas être modifié.
+- Les pages {{{html}}} produites doivent être complètes (avec un en-tête ~<head>~ correct).
+- Il doit être possible de ne pas générer cet en-tête avec l'option ~--headless~.
+- Les pages {{{html}}} produites doivent etre conformes à la [[https://www.w3.org/standards/][norme W3C]].
+- Les liens générés doivent être _tous_[fn:8] relatifs.
+- Il ne doit pas y avoir d'examen de dépendances.
+- Il doit être possible de tester les pages localement avec des liens redirigeant
+  vers des adresses existantes (option ~--local~).
+- Il doit gérer (au minimum) les extensions listées par le tableau [[tab:ext-to-support]].
+
+**** Interface à respecter
+- Il doit y avoir une option ~--print~ pour afficher le code {{{html}}} résultant
+  dans la console (sortie standard) afin de pouvoir être composé[fn:9].
+- Il doit y avoir une option ~--output FILE~ pour sélectionner le nom du fichier
+  {{{html}}} de sortie. En conséquence, les deux commandes du listing [[lst:ohow-equiv]]
+  doivent produire /exactement/ le même résultat.
+- Pour des raisons de commodité, =ohow= doit pouvoir accepter plusieurs fichiers
+  en entrée mais les résultats dans ce cas-là doivent être /strictement les mêmes/
+  que si =ohow= avait été exécuté $n$ fois pour chacun des $n$ fichiers donnés.
+- Il doit y avoir une option ~--help~ qui affiche la liste des options disponibles
+  et qui fournit une description succinte de l'outil.
+- La version de l'outil doit pouvoir être affichée avec l'option ~--version~.
+
+#+NAME: lst:ohow-equiv
+#+CAPTION: Relation entre les options ~--print~ et ~--output~ de =ohow=.
+#+begin_listing
+#+BEGIN_SRC shell
+  $ ohow --output out.html mydoc.wiki # has the same effet as
+  $ ohow --print mydoc.wiki > out.html
+#+END_SRC
+#+end_listing
+
+**** Les Liens
+Le cas des liens est complexe, déjà car il existe deux manières d'écrire un lien
+en wikicréole étendu :
+- avec la syntaxe wikicréole standard, par exemple
+  {{{wikilink(wiki(name):page)}}} ou encore {{{wikilink(site:address)}}}\(\)[fn:11], et,
+- avec les extensions Ocsigen ~a_manual~, ~a_api~, ~a_img~, etc.
+
+Le problème est que ces deux types de liens sont traités dans deux parties
+bien distinctes du compilateur.
+
+
+#+NAME: setup-org-latex-src-block-dispatch-export
+#+BEGIN_SRC elisp :exports none :results silent
+  ;; (unless (fboundp '-old--org-latex-src-block)
+  ;;   (fset '-old--org-latex-src-block (symbol-function 'org-latex-src-block)))
+  ;; (defun org-latex-src-block (src-block _contents info)
+  ;;   (let* ((attr (org-export-read-attribute :attr_latex src-block))
+  ;;          (inline-p (plist-get :inline attr)))
+  ;;     (error "inline-p %S attr %S info %S" inline-p attr info)
+  ;;     (if inline-p
+  ;;         (progn
+  ;;           (push '(ocaml "ocamlinline") org-latex-custom-lang-environments)
+  ;;           (-old--org-latex-src-block src-block _contents info)
+  ;;           (pop org-latex-custom-lang-environments))
+  ;;       (-old--org-latex-src-block src-block _contents info))))
+
+  ;; (push '(ocaml "ocamlinline") org-latex-custom-lang-environments)
+#+END_SRC
+
+Pour la syntaxe standard {{{wikilink(link)}}}, la déduction de l'URL (c'est-à-dire
+le chemin vers la page de destination) est faite lors de la génération des éléments
+{{{html}}}. Concrètement, il existe une fonction
+~href_of_link : string -> 'a Html5.elt list -> [> 'a Html_types.a ] Html5.elt~
+qui, pour chaque lien (syntaxe standard) du wiki, associe l'élément ~<a/>~ correspondant,
+c'est-à-dire la balise {{{html}}} utilisée pour créer un lien sur une page web
+(dont le type avec ~Tyxml~ est ~[> 'a Html_types.a ] Html5.elt~).
+Cette fonction est appelée par le compilateur /directement/ et est au coeur du
+processus de compilation.
+
+#+NAME: lst:example-href_of_link
+#+CAPTION: Comment est généré le lien {{{html}}} correspondant à {{{wikilink(wiki(eliom):intro|goto intro)}}}.
+#+begin_listing
+#+BEGIN_SRC ocaml
+  (* Pour le lien [[wiki(eliom):intro]], la fonction [href_of_link] est appelée ainsi : *)
+  href_of_link "wiki(eliom):intro" [Tyxml.Html.pcdata "goto intro"]
+  (* Elle retourne alors un élément Tyxml créé comme suit : *)
+  Tyxml.Html.(a ~a:[a_href "../../the/path/to/eliom/intro"] [pcdata "goto intro"])
+  (* Cet élément correspond à la construction HTML suivante : *)
+  (* <a href="../../the/path/to/eliom/intro">goto intro</a> *)
+#+END_SRC
+#+end_listing
+
+#+begin_ex
+Le listing [[lst:example-href_of_link]] montre en quoi la fonction ~href_of_link~
+est responsable d'une déduction de liens correcte et aussi, plus généralement,
+comment l'on peut générer des morceaux d'{{{html}}} en {{{ocaml}}} à l'aide
+de la bibliothèque Tyxml (appartennant au projet Ocsigen).
+#+end_ex
+
+En revanche, pour les extensions, le fonctionnement est différent et un exemple
+d'implémentation d'une extension simple est donné par le listing [[lst:ext-ex]].
+Les extensions qui ont fonction de lien dans la documentation du projet Ocsigen
+sont les suivantes :
+- ~a_manual~ qui décrit un lien vers une page du manuel,
+- ~a_api~, ~a_api_type~, ~a_api_code~ qui décrivent un lien vers la page de
+  documentation d'un symbole d'une {{{api}}}\(\)[fn:12],
+- ~a_img~ qui insère une image (balise {{{html}}} ~<img/>~) à l'endroit donné, et,
+- ~a_file~ qui décrit un lien vers un fichier quelconque à télécharger, stocké au
+  même endroit que le site généré (GitHub Pages dans le cas du projet Ocsigen).
+
+Le tableau [[tab:link-exts]] décrit les attributs que ces extensions doivent supporter.
+Le listing [[lst:link-exts-ex]] donne un exemple d'utilisation de ces extensions.
+
+#+NAME: tab:link-exts
+#+CAPTION: Description des attributs des extensions Ocsigen ayant fonction de lien.
+#+begin_table
+#+LATEX: \small
+|--------------+-------------------------------------+-----------------------------------------+-------------------|
+| Attribut     | Extensions concernées               | Description                             | Valeur par défaut |
+|--------------+-------------------------------------+-----------------------------------------+-------------------|
+| ~project~    | Tous sauf ~a_img~ et ~a_file~       | Le projet contenant la page             | Projet courant    |
+| ~chapter~    | ~a_manual~                          | Le chapitre du manuel contenant la page | Aucun             |
+| ~subproject~ | ~a_api~, ~a_api_type~, ~a_api_code~ | Le sous-projet contenant le symbole     | Aucun             |
+| ~text~       | ~a_api~, ~a_api_type~, ~a_api_code~ | Texte du lien produit                   | Le symbole        |
+| ~version~    | Tous sauf ~a_img~ et ~a_file~       | La version du projet contenant la page  | Version courante  |
+| ~fragment~   | Tous sauf ~a_img~ et ~a_file~       | /Fragment/ (ou /ancre/) {{{html}}}      | Aucune            |
+| ~src~        | ~a_img~, ~a_file~                   | Le chemin vers la ressource à lier      | /Requis/          |
+|--------------+-------------------------------------+-----------------------------------------+-------------------|
+#+end_table
+
+#+NAME: lst:link-exts-ex
+#+CAPTION: Exemple d'utilisation des liens sous forme d'extensions Ocsigen.
+#+begin_listing
+#+BEGIN_SRC text
+  <<a_manual project="eliom" chapter="intro" | introduction of Eliom's docs>>
+  <<a_manual project="eliom" subproject="ppx" | index.html of the PPX subproject of Eliom>>
+  <<a_manual version="2.1" | index.html of the current project version 2.1>>
+  <<a_api project="eliom" subproject="server" text="some text" | type Eliom_client.server_function>>
+  <<a_api_type project="eliom" subproject="server" | type Eliom_client.server_function>>
+  <<a_file src="mindmap.pdf">>
+  <<a_img src="logo.png">>
+#+END_SRC
+#+end_listing
+
+
+#+BEGIN_EXPORT latex
+\newpage
+\listoffigures
+\listoftables
+\renewcommand{\listoflistingscaption}{Liste des listings}
+\listoflistings
+#+END_EXPORT
+
 * Footnotes
+
+[fn:12] /Application Programming Interface/ ou "interface de programmation applicative", désigne l'ensemble
+des /fonctionnalités/ (fonctions, classes, variables, etc.) que le concepteur d'un service fournit à son
+utilisateur. L'{{{api}}} constitue le /sous-ensemble/ de l'implémentation du service qui est /ouvert/ à
+ses utilisateurs et auquel ces derniers sont censés se limiter.
+
+[fn:11] Il existe d'autres syntaxes standard pour les liens, ainsi que de nombreuses abbréviations. Pour plus
+d'informations, consulter l'annexe TODO sur le wikicréole.
+
+[fn:10] Cela permet de rendre le programme plus simple à maintenir mais aussi plus en accord avec la philosophie
+Unix. "Make each program do one thing well."
+
+[fn:9] Une utilisation idomatique de la ligne de commande des systèmes Unix est de composer différents programmes
+simples pour réaliser une action complexe. "Expect the output of every program to become the input to another, as yet unknown, program."
+
+[fn:8] Ceci ne concerne que les liens entre les pages du projet. Les liens vers d'autres sites web sont nécéssairement absolus.
 
 [fn:7] Toutes les extensions acceptent les attributs ~class~ et ~id~ correspondant aux attributs {{{html}}} du même nom.
 

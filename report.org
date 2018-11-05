@@ -3,8 +3,10 @@
 #+EMAIL: leo.valais@epita.fr
 #+DATE: <2018-11-09 ven.>
 #+LANGUAGE: fr
-#+STARTUP: overview latexpreview
-#+OPTIONS: ^:{} ':t H:4
+#+STARTUP: content noinlineimages fnadjust hideblocks latexpreview
+#+OPTIONS: ^:{} _:{} ':t H:4
+
+# #+LaTeX_CLASS_OPTIONS: [a4paper,twoside]
 
 #+LATEX_HEADER: \usepackage{xcolor}
 #+LATEX_HEADER: \usepackage{xspace}
@@ -13,11 +15,17 @@
 #+LATEX_HEADER: \usepackage{minted}
 # #+LATEX_HEADER: \usepackage{beton}
 # #+LATEX_HEADER: \usepackage{euler}
-# #+LATEX_HEADER: \usepackage[ttdefault,scale=0.9]{sourcecodepro}
+#+LATEX_HEADER: \usepackage[ttdefault,scale=0.85]{sourcecodepro}
 #+LATEX_HEADER: \usepackage{fontawesome}
 #+LATEX_HEADER: \usepackage{xparse}
 #+LATEX_HEADER: \usepackage[in]{fullpage}
+#+LATEX_HEADER: \usepackage{titlesec}
+#+LATEX_HEADER: \usepackage{dashrule}
+# #+LATEX_HEADER: \usepackage{fancyhdr}
+# #+LATEX_HEADER: \usepackage[top=2cm,bottom=2cm,left=3cm,right=2cm,headheight=17pt,includehead,includefoot,heightrounded]{geometry}
 #+LATEX_HEADER: \usepackage{flatbox/flatbox}
+#+LATEX_HEADER: \usepackage{codebox/codebox}
+# #+LATEX_HEADER: \usepackage[texcoord,grid,gridunit=mm,gridcolor=red!20,subgridcolor=gray!10]{eso-pic}
 
 #+LATEX_HEADER: \NoAutoSpaceBeforeFDP
 #+LATEX_HEADER: \usetikzlibrary{positioning,shapes}
@@ -33,7 +41,93 @@
         org-latex-to-pdf-process '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
                                    "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
                                    "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+  (setq org-latex-text-markup-alist '((bold . "\\textbf{%s}")
+                                      (code . protectedcode)
+                                      (italic . "\\emph{%s}")
+                                      (strike-through . "\\sout{%s}")
+                                      (underline . "\\uline{%s}")
+                                      (verbatim . protectedtexttt)))
+
+  (defun org-latex--text-markup (text markup info)
+    "Format TEXT depending on MARKUP text markup.
+  INFO is a plist used as a communication channel.  See
+  `org-latex-text-markup-alist' for details."
+    (let ((fmt (cdr (assq markup (plist-get info :latex-text-markup-alist)))))
+      (cl-case fmt
+        ;; No format string: Return raw text.
+        ((nil) text)
+        ;; Handle the `verb' special case: Find an appropriate separator
+        ;; and use "\\verb" command.
+        (verb
+         (let ((separator (org-latex--find-verb-separator text)))
+           (concat "\\verb"
+                   separator
+                   (replace-regexp-in-string "\n" " " text)
+                   separator)))
+        ;; Handle the `protectedtexttt' special case: Protect some
+        ;; special chars and use "\texttt{%s}" format string.
+        (protectedtexttt
+         (format "\\texttt{%s}"
+                 (replace-regexp-in-string
+                  "--\\|[\\{}$%&_#~^]"
+                  (lambda (m)
+                    (cond ((equal m "--") "-{}-")
+                          ((equal m "\\") "\\textbackslash{}")
+                          ((equal m "~") "\\textasciitilde{}")
+                          ((equal m "^") "\\textasciicircum{}")
+                          (t (org-latex--protect-text m))))
+                  text nil t)))
+        (protectedcode
+         (format "\\code{%s}"
+                 (replace-regexp-in-string
+                  "--\\|[\\{}$%&_#~^]"
+                  (lambda (m)
+                    (cond ((equal m "--") "-{}-")
+                          ((equal m "\\") "\\textbackslash{}")
+                          ((equal m "~") "\\textasciitilde{}")
+                          ((equal m "^") "\\textasciicircum{}")
+                          (t (org-latex--protect-text m))))
+                  text nil t)))
+        ;; Else use format string.
+        (t (format fmt text)))))
 #+END_SRC
+
+#+NAME: setup-latex-env
+#+BEGIN_EXPORT latex
+\AtEndDocument{%
+  \clearpage%
+  \titleformat{\section}{\Large\bf}{\thesection}{1em}{}%
+  \listoffigures%
+  \listoftables%
+  \renewcommand{\listoflistingscaption}{Liste des listings}%
+  \listoflistings}
+
+%% Header
+% \pagestyle{fancy}
+% \fancyhf{}
+% \fancyhead[LE,RO]{Share\LaTeX}
+% \fancyhead[RE,LO]{Guides and tutorials}
+% \fancyfoot[CE,CO]{\thepage}
+
+\titleformat{\section}{\Large\bf\clearpage}{\thesection}{1em}{}[\color{gray}\titlerule]
+% \titleformat{\subsection}[runin]{\large\bf}{\thesubsection}{.5em}{}[\color{gray}\rule{\fill}{1mm}]
+% \titleformat{\subsubsection}{\normalsize\it}{\thesubsubsection}{.25em}{}[\color{gray}\titlerule]
+
+%% Custom environments
+\newenvironment{note}{\begin{noteffbox}{Note}\small}{\end{noteffbox}}
+\newenvironment{ex}{\begin{exampleffbox}{Exemple}\small}{\end{exampleffbox}}
+
+\newcommand{\bigquotemark}[1]{\begin{minipage}{.05\textwidth}\color{gray}\bf\Huge#1\end{minipage}}
+\renewenvironment{quote}{%
+  \begin{center}
+    \bigquotemark{\og}
+    \begin{minipage}{.75\textwidth}\small\it\color{gray!50!dark}
+    }{%
+    \end{minipage}
+    \bigquotemark{\fg}
+  \end{center}}
+#+END_EXPORT
 
 #+BEGIN_COMMENT
 L'exporter de latex se trouve dans le fichier ox-latex.el
@@ -43,9 +137,6 @@ un \begin{example}\end{example} où l'environment peut être définit
 comme on veut.
 #+END_COMMENT
 
-#+LATEX: \newenvironment{note}{\begin{noteffbox}{Note}\small}{\end{noteffbox}}
-#+LATEX: \newenvironment{ex}{\begin{exampleffbox}{Exemple}\small}{\end{exampleffbox}}
-
 #+MACRO: acr \textsc{$1}
 #+MACRO: lrde {{{acr(Lrde)}}}
 #+MACRO: inria {{{acr(Inria)}}}
@@ -54,9 +145,9 @@ comme on veut.
 #+MACRO: cl Common Lisp
 #+MACRO: ocaml OCaml
 #+MACRO: html {{{acr(Html)}}}
-#+MACRO: htmltag \texttt{<}\texttt{$1}\texttt{>}
-#+MACRO: wikiext \texttt{<}\texttt{<}\texttt{$1}\texttt{>}\texttt{>}
-#+MACRO: wikilink \sloppy\texttt{[[$1]]}
+#+MACRO: css {{{acr(Css)}}}
+#+MACRO: wikiext \sloppy\code{<\relax <$1>\relax >}
+#+MACRO: wikilink \sloppy\code{[[$1]]}
 
 #+BEGIN_COMMENT
 TODO
@@ -67,14 +158,40 @@ TODO
 - styliser les tableaux
 #+END_COMMENT
 
+#+BEGIN_EXPORT latex
+%% Some Tikz functions to build a filesystem-like tree.
+%% TODO: remove the necessity of the parent node for fsnode.
+\makeatletter
+\newcommand{\fsleaf}[3][fsleaf]{% [opts], name, text
+  \node[below=\value{fs@cnt\fs@parent} of \fs@parent] (fsanch-#2) {};%
+  \node[right=.25 of fsanch-#2,#1] (#2) {#3};%
+  \draw (\fs@parent) |- (#2);%
+  \stepcounter{fs@cnt\fs@parent} % add .west and place it on top of the command
+}
+\NewDocumentEnvironment{fsnode}{O{fsnode}mmm}{% [opts], parent, name, text
+  \newcounter{fs@cnt#3}
+  \fsleaf[#1]{#3}{#4}%
+  \def\fs@parent{#3}
+}{%
+  \addtocounter{fs@cnt#2}{\value{fs@cnt#3}}%
+}
+\newenvironment{fsroot}[3][fsnode]{%
+  \newcounter{fs@cnt#2}
+  \def\fs@parent{#2}
+  \node[#1] (#2) {#3};%
+}{}
+\newcommand{\fsdots}{\fsleaf{fsdots-\fs@parent}{\(\cdots\)}}
+\makeatother
+#+END_EXPORT
+
 * Introduction
-Ayant travaillé sur un projet en {{{cl}}} au {{{lrde}}}\(\)[fn:4], je souhaitais trouver
+Ayant travaillé sur un projet en {{{cl}}} au {{{lrde}}}\(\)[fn:1], je souhaitais trouver
 un stage centré sur la programmation fonctionnelle, de préférence avec un langage
 statiquement typé. J'ai donc accepté le stage que la startup /BeSport/ m'a proposé
 essentiellement pour deux raisons :
 
 1. leur langage de prédilection est {{{ocaml}}}. C'est un langage fondamentalement
-   fonctionnel, statiquement typé développé à l'{{{inria}}}\(\)[fn:5]. Cela correspond donc
+   fonctionnel, statiquement typé développé à l'{{{inria}}}\(\)[fn:2]. Cela correspond donc
    parfaitement aux attentes que j'avais en termes de technologies.
 2. leurs applicatifs (/backend/, /frontend/, /importation de données/, etc.) sont
    entièrement développés en {{{ocaml}}}, nottament grâce au
@@ -110,7 +227,7 @@ de l'application BeSport :
 /la création d'un outil ergonomique de gestion de la documentation du projet Ocsigen pour GitHub Pages/.
 En effet, la documentation est écrite dans un format particulier ([[http://ocsigen-1.inria.fr/ocsimore/dev/manual/wiki][le wikicréole]]) muni d'extensions
 propriétaires, qu'il est nécéssaire de compiler vers de l'{{{html}}} à chaque modification de celle-ci.
-C'était le but de =Ocsimore= et =Ocsiforge=, outils du projet Ocsigen, aujourd'hui dépréciés.
+C'était le but de Ocsimore et Ocsiforge, outils du projet Ocsigen, aujourd'hui dépréciés.
 Les remplacent un outil interne, lourd, monolithique et peu flexible, qu'il m'a été demandé de remplacer.
 Ma mission consiste donc à développer cet outil, simple, ergonomique et flexible, générant les pages
 de documentation au format {{{html}}}, afin de les téléverser vers GitHub Pages.
@@ -120,15 +237,24 @@ Mes attentes par rapport à ce stage sont multiples.
   en particulier.
 - Découvrir la programmation multi-tiers au travers du projet Ocsigen.
 - Une introduction à l'univers de la startup et les différentes méthodologies
-  de travail telles qu'{{{acr(agile)}}} et {{{acr(scrum)}}} et les pratiques associées.
+  de travail telles qu'{{{acr(Agile)}}} et {{{acr(Scrum)}}} et les pratiques associées.
 - Une première expérience de la collaboration à plus grande échelle que les
   projets scolaires, avec des enjeux réels.
 
+* Présentation de BeSport
+** Le secteur d'activité
+** L'entreprise
+*** Présentation
+*** Organigramme
+** Le service
+*** Le réseau social BeSport
+*** Le projet Ocsigen
+** Le positionnement du stage dans les travaux de l'entreprise
 * one_html_of_wiki
 ** But général<<sec:ohow-but-grl>>
 *** Le wikicréole
 Le projet Ocsigen est vieux de plus de dix ans. Les formats de documentation
-actuellement répandus, tels que le Markdown ou le reStructured Text, n'existaient
+actuellement répandus, tels que le /Markdown/ ou le /reStructured Text/, n'existaient
 alors pas ou commencaient à émerger. Le seul format alors en vigueur était le format
 /wiki/ de Wikipédia, et toutes ses déclinaisons. C'est l'une d'entre elles qui
 a été choisie pour la documentation du projet Ocsigen : le /wikicréole/.
@@ -144,8 +270,8 @@ Le listing [[lst:example-wiki]] montre un texte formatté en wikicréole. C'est 
 un format léger et relativement pratique à utiliser, mais il est nécéssaire de le
 convertir en {{{html}}} pour pouvoir le publier (sur GitHub Pages dans le cas de BeSport).
 
-*** =Ocsimore= et =Ocsiforge=
-C'était le but des outils =Ocsimore= et =Ocsiforge=, autrefois partie du projet
+*** Ocsimore et Ocsiforge
+C'était le but des outils Ocsimore et Ocsiforge, autrefois partie du projet
 Ocsigen, aujourd'hui dépéciés et plus maintenus.
 
 Leur rôle était de fournir une infrastructure permettant de gérer la documentation
@@ -158,7 +284,7 @@ d'un ensemble de projets. Ils servaient, entres autres, à:
 - proposer un blog, un newsfeed, un blog, etc., et
 - gérer un base d'utilisateurs s'étant inscrits sur le site déployé.
 
-De plus, =Ocsimore= a ajouté au wikicréole un système /d'extensions/ afin d'étendre
+De plus, Ocsimore a ajouté au wikicréole un système /d'extensions/ afin d'étendre
 les possibilités du langage. Schématiquement, les extensions fonctionnent de la manière
 suivante:
 - Chaque extension s'enregistre auprès du compilateur (elle donne son nom ---
@@ -176,13 +302,13 @@ abandonnées. Mais parmi celles-ci,
 /l'exportation des wikis vers des pages {{{html}}} se devait d'être conservée/
 pour garantir la disponibilité de la documentation aux utilisateurs du projet Ocsigen.
 
-*** =html_of_wiki=
-C'est dans cette optique qu'est né le projet =html_of_wiki=[fn:1] (abbrégé =how=).
-Cet outil reprend une partie du code d'=Ocsimore=, l'analyseur syntaxique (/lexer/)
+*** html_of_wiki
+C'est dans cette optique qu'est né le projet html_of_wiki[fn:3] (abbrégé =how=).
+Cet outil reprend une partie du code d'Ocsimore, l'analyseur syntaxique (/lexer/)
 et l'analyseur grammatical (/parser/), mais est /complètement dédié au projet Ocsigen/.
 C'est donc un outil /interne/. Son objectif initial devait être simplement de convertir
 le wikicréole en {{{html}}}. Cependant, comme ce projet est en réalité une
-/simplification d'=Ocsimore=/, il est à cause de cela soumis à un certain nombres
+/simplification d'Ocsimore/, il est à cause de cela soumis à un certain nombres
 de contraintes, en particulier en termes de condition d'utilisation. Pour comprendre
 en quoi la présence de ces contraintes d'utilisation est indésirable, il faut
 d'abord s'intéresser au fonctionnement de =how=.
@@ -192,7 +318,7 @@ d'abord s'intéresser au fonctionnement de =how=.
 2. =how= compile ensuite chaque fichier ~*.wiki~ en un fichier {{{html}}}, tout en
    s'assurant que chaque lien et valide (signale les liens morts) et que les
    /extensions/ sont bien exécutées.
-3. Les pages {{{html}}} sont ensuite placées dans un dossier =ocsigen.org-repositories=.
+3. Les pages {{{html}}} sont ensuite placées dans un dossier ~ocsigen.org-repositories/~.
 4. Ces pages sont enfin copiées dans la branche ~gh-pages~ du projet auquel elles
    appartiennent et sont poussées vers GitHub.
 
@@ -214,16 +340,16 @@ Plusieurs inconvénients majeurs se distinguent déjà.
 
 D'autre part, =how= souffre également des problèmes suivants:
 - La page d'accueil \sloppy[[https://ocsigen.github.io]] doit être traitée comme un cas
-  particulier[fn:2].
+  particulier[fn:4].
 - Les liens générés sont des liens /absolus/, ce qui proscrit toute modification
   de l'architecture des projets ou du site au risque de casser la plupart des liens.
 - Puisque la gestion des versions est manuelle, la gestion des redirections l'est
-  aussi[fn:3].
+  aussi[fn:5].
   #+begin_ex
-  La page d'accueil du projet =Eliom= doit être ~eliom/2.8/intro.html~,
-  en supposant que ~2.8~ est la dernière version en date. Il faut alors créer le
+  La page d'accueil du projet Eliom doit être ~eliom/2.8/intro.html~,
+  en supposant que =2.8= est la dernière version en date. Il faut alors créer le
   lien symbolique ~index.html~ à la racine du projet sur la branche ~gh-pages~
-  et le faire pointer vers ~intro.html~. À la sortie de la version ~2.9~, il
+  et le faire pointer vers ~intro.html~. À la sortie de la version =2.9=, il
   faut alors penser à placer les wikis dans ~ocsigen.org-data/eliom~, mais aussi
   à mettre à jour le lien ~eliom/index.html~ décrit ci-dessus.
   #+end_ex
@@ -231,26 +357,26 @@ D'autre part, =how= souffre également des problèmes suivants:
   ayant le rôle de manuel d'utilisation dans un dossier ~src/~).
 
 La figure [[fig:how-arch]] illustre et résume la (lourde) architecture nécéssaire pour faire
-fonctionner =html_of_wiki=.
+fonctionner html_of_wiki.
 
 =how= est donc un outil qui fonctionne, mais lourd, monolithique, peu flexible
 et peu ergonomique. La mission de créer un outil pour le remplacer m'a donc été confiée.
 
 #+NAME: fig:how-arch
-#+CAPTION: Architecture nécéssaire pour faire fonctionner =html_of_wiki=.
+#+CAPTION: Architecture nécéssaire pour faire fonctionner html_of_wiki.
 #+begin_figure
 #+INCLUDE: "how-arch.tex" export latex
 #+end_figure
 
-*** =one_html_of_wiki=
+*** one_html_of_wiki
 L'idée était donc de simplifier drastiquement =how= mais en le privant du minimum
 de fonctionnalités possible. Ce nouvel outil devait être capable de compiler les
 wikis /un par un/ et *sans examen de dépendances* pour la construction des liens.
-C'est pour cela que cet outil a été nommé =one_html_of_wiki= (abbrégé =ohow=).
+C'est pour cela que cet outil a été nommé one_html_of_wiki (abbrégé =ohow=).
 Cet outil se devait d'être /simple/ et /composable/ (plus en accord avec la
 philosophie Unix). Cependant, cela implique la nécéssité d'un
 outil supplémentaire, capable d'utiliser =ohow= pour générer la documentation
-/d'une version entière/ d'un projet donné : =doc_of_project= (abbrégé =dop=).
+/d'une version entière/ d'un projet donné : doc_of_project (abbrégé =dop=).
 Ces deux outils ont donc principalement pour but de :
 - remplacer définitivement =how=,
 - avoir la possibilité de placer la documentation des projets ailleurs que
@@ -268,7 +394,7 @@ eval $(opam config env)
 #+END_SRC
 
 #+NAME: lst:example-html
-#+CAPTION: Le code {{{html}}} du wiki du listing [[lst:example-wiki]] produit par =one_html_of_wiki=.
+#+CAPTION: Le code {{{html}}} du wiki du listing [[lst:example-wiki]] produit par one_html_of_wiki.
 #+INCLUDE: "example.html" src html
 
 L'objectif principal est de remplacer l'utilisation de =how= en /interne/. Cependant,
@@ -279,12 +405,12 @@ souhaitant avoir de la documentation écrite en wikicréole extensible).
 
 ** Cahier des charges
 Comme expliqué dans la [[sec:ohow-but-grl][section "But général"]], le cahier des charges pour ce projet
-dépasse la simple réalisation de l'outil =one_html_of_wiki=. Les principaux
+dépasse la simple réalisation de l'outil one_html_of_wiki. Les principaux
 objectifs de cette mission sont les suivants.
 
-- Remplacer =html_of_wiki= par la combinaison de deux outils: =one_html_of_wiki=,
+- Remplacer html_of_wiki par la combinaison de deux outils: one_html_of_wiki,
   le compilateur wikicréole \rightarrow {{{html}}} qui opère fichier par fichier et
-  =doc_of_project=, qui opère version de projet par version de projet,
+  doc_of_project, qui opère version de projet par version de projet,
 - conserver le même format de wikicréole et les même extensions (100% rétrocompatible avec =how=),
 - être capable, à l'aide de ces outils, de regénérer le site [[https://ocsigen.org]]
   à l'identique,
@@ -302,7 +428,7 @@ du projet Ocsigen.
 *** Le langage à supporter : le wikicréole extensible
 **** Le wikicréole
 La spécification du langage wikicréole utilisée par le projet Ocsigen est décrite
-dans l'annexe TODO.
+dans l'annexe [[sec:anx-wikicreole]].
 
 **** Les extensions
 La documentation du projet Ocsigen s'appuie fortement sur une construction syntaxique
@@ -336,11 +462,11 @@ puissant de par sa capacité à excécuter du code arbitrairement complexe au co
 processus de compilation.
 
 #+NAME: lst:ext-ex
-#+CAPTION: Code {{{ocaml}}} nécéssaire pour ajouter l'extension ~"colored"~.
+#+CAPTION: Code {{{ocaml}}} nécéssaire pour ajouter l'extension ~colored~.
 #+INCLUDE: "ext-ex.ml" src ocaml
 
-Le tableau [[tab:ext-to-support]] liste et décrit les extensions (et leur attributs[fn:7])
-définies pour le projet Ocsigen que =ohow= doit pourvoir supporter[fn:6].
+Le tableau [[tab:ext-to-support]] liste et décrit les extensions (et leur attributs[fn:6])
+définies pour le projet Ocsigen que =ohow= doit pourvoir supporter[fn:7].
 
 #+NAME: tab:ext-to-support
 #+CAPTION: Extensions Ocsigen que =ohow= doit impérativement supporter.
@@ -376,7 +502,7 @@ définies pour le projet Ocsigen que =ohow= doit pourvoir supporter[fn:6].
 
 **** Le compilateur wikicréole \rightarrow {{{html}}}
 Comme expliqué dans la section [[sec:ohow-but-grl]], =ohow= doit être construit par dessus
-=how=, lui-même écrit à partir de =Ocsimore= et =Ocsiforge=. Ces derniers avaient
+=how=, lui-même écrit à partir de Ocsimore et Ocsiforge. Ces derniers avaient
 implémenté un compilateur wikicréole \rightarrow {{{html}}} écrit en {{{ocaml}}} afin de
 pouvoir remplir leur fonction. Ce compilateur a été repris par =how= et
 /doit également être réutilisé par =ohow=/.
@@ -388,8 +514,8 @@ liens pointent vers des URLs comme [[https://ocsigen.org/project/page]]). Il fau
 modifier les procédures concernées afin de générer les /liens relatifs/, plus flexibles,
 mais plus contraignants à implémenter.
 
-*** L'outil principal : =one_html_of_wiki=
-La fonction de =one_html_of_wiki= est /simple/ et /unique/[fn:10]:
+*** L'outil principal : one_html_of_wiki<<sec:cdc-ohow>>
+La fonction de one_html_of_wiki est /simple/ et /unique/[fn:8]:
 #+BEGIN_QUOTE
 Pouvoir compiler les fichiers wikicréole *individuellement* et *sans examen de dépendances* (compilation *isolée*).
 #+END_QUOTE
@@ -406,15 +532,18 @@ web et conforme à la [[https://www.w3.org/standards/][norme W3C]]. L'outil doit
 - Les pages {{{html}}} produites doivent être complètes (avec un en-tête ~<head>~ correct).
 - Il doit être possible de ne pas générer cet en-tête avec l'option ~--headless~.
 - Les pages {{{html}}} produites doivent etre conformes à la [[https://www.w3.org/standards/][norme W3C]].
-- Les liens générés doivent être _tous_[fn:8] relatifs.
+- Les liens générés doivent être _tous_[fn:9] relatifs.
 - Il ne doit pas y avoir d'examen de dépendances.
 - Il doit être possible de tester les pages localement avec des liens redirigeant
   vers des adresses existantes (option ~--local~).
 - Il doit gérer (au minimum) les extensions listées par le tableau [[tab:ext-to-support]].
+- Les URLs produites par =ohow= doivent être /compatibles/ avec celles générées par
+  =how=. Cela a pour effet de ne pas casser les liens que des sites tiers font
+  avec la documentation.
 
 **** Interface à respecter
 - Il doit y avoir une option ~--print~ pour afficher le code {{{html}}} résultant
-  dans la console (sortie standard) afin de pouvoir être composé[fn:9].
+  dans la console (sortie standard) afin de pouvoir être composé[fn:10].
 - Il doit y avoir une option ~--output FILE~ pour sélectionner le nom du fichier
   {{{html}}} de sortie. En conséquence, les deux commandes du listing [[lst:ohow-equiv]]
   doivent produire /exactement/ le même résultat.
@@ -477,7 +606,7 @@ processus de compilation.
 #+CAPTION: Comment est généré le lien {{{html}}} correspondant à {{{wikilink(wiki(eliom):intro|goto intro)}}}.
 #+begin_listing
 #+BEGIN_SRC ocaml
-  (* Pour le lien [[wiki(eliom):intro]], la fonction [href_of_link] est appelée ainsi : *)
+  (* Pour le lien [[wiki(eliom):intro|goto intro]], la fonction [href_of_link] est appelée ainsi : *)
   href_of_link "wiki(eliom):intro" [Tyxml.Html.pcdata "goto intro"]
   (* Elle retourne alors un élément Tyxml créé comme suit : *)
   Tyxml.Html.(a ~a:[a_href "../../the/path/to/eliom/intro"] [pcdata "goto intro"])
@@ -497,9 +626,9 @@ En revanche, pour les extensions, le fonctionnement est différent et un exemple
 d'implémentation d'une extension simple est donné par le listing [[lst:ext-ex]].
 Les extensions qui ont fonction de lien dans la documentation du projet Ocsigen
 sont les suivantes :
-- ~a_manual~ qui décrit un lien vers une page du manuel,
+- ~a_manual~ qui décrit un lien vers un chapitre[fn:12] du manuel,
 - ~a_api~, ~a_api_type~, ~a_api_code~ qui décrivent un lien vers la page de
-  documentation d'un symbole d'une {{{api}}}\(\)[fn:12],
+  documentation d'un symbole d'une {{{api}}}\(\)[fn:13],
 - ~a_img~ qui insère une image (balise {{{html}}} ~<img/>~) à l'endroit donné, et,
 - ~a_file~ qui décrit un lien vers un fichier quelconque à télécharger, stocké au
   même endroit que le site généré (GitHub Pages dans le cas du projet Ocsigen).
@@ -538,46 +667,526 @@ Le listing [[lst:link-exts-ex]] donne un exemple d'utilisation de ces extensions
 #+END_SRC
 #+end_listing
 
+Cependant, il existe une différence fondamentale entre les liens syntaxiques
+{{{wikilink(link)}}} et ces extensions : ces premiers indiquent /où/ trouver
+la ressource liée alors que les extensions indiquent seulement /quelle/ ressource
+lier /sans préciser sa localisation/. Autrement dit, {{{wikilink(other/page|text)}}}
+peut être lu comme "dans le dossier de la page courante, aller dans le dossier
+~other~, s'y trouve une page ~page~ : c'est elle qu'il faut lier" et
+{{{wikiext(a\_manual project="P" chapter="C"|text)}}} comme "/trouver/ la page ~C~
+/quelque part/ dans le projet ~P~ (un dossier, lui aussi /quelque part/) et créer
+un lien vers celle-ci".
 
-#+BEGIN_EXPORT latex
-\newpage
-\listoffigures
-\listoftables
-\renewcommand{\listoflistingscaption}{Liste des listings}
-\listoflistings
-#+END_EXPORT
+Dans le cas des extensions, le logiciel ne pouvant pas "deviner" où se situe la
+ressource demandée, il est necésaire /d'imposer une architecture/ que l'utilisateur
+de celles-ci doit /respecter/ afin que leur fonctionnement soit garanti.
+Concrètement, l'architecture ci-dessous a été choisie, autant pour des raisons
+techniques imposées par GitHub Pages que pour rendre la compatibilité
+des URLs plus simple à maintenir.
+
+- Tous les projets (dossiers) concernés par les extensions se situent dans le
+  même dossier (ils sont tous au même niveau). Dans la terminologie employée
+  par =ohow=, c'est le *projects directory*.
+- À la racine de chaque projet se trouve les dossiers de versions, dont le nom
+  correspond à la version concernée, par exemple =1.1=, =2.0.3=, etc. Plus
+  formellement, leur nomenclature est décrite par /l'expression régulière/
+  ~([0-9](.[0-9])+|dev)~, où ~dev~ correspond à la documentation de la version
+  en développement. Dans la terminologie employée par =ohow=, c'est le
+  *versions directory*.
+- Dans ce versions directory doit se trouver un lien symbolique nommé
+  ~latest~ qui pointe vers le dossier de la version considérée comme "la
+  plus récente".
+- À la racine de chaque version doit se trouver un lien symbolique nommé
+  ~index.html~[fn:14] qui pointe vers la page d'introduction ou de présentation
+  du projet (pour la version en question).
+- Dans le versions directory doit également se trouver un lien symbolique
+  nommé aussi ~index.html~ qui pointe vers la page d'accueil du projet par
+  défaut lorsque la version n'est pas spécifiée. ~latest/index.html~ est
+  une bonne valeur pour ce lien.
+- Pour rappel, =ohow= compile les wikis un par un : il est donc possible de
+  connaître la version de la documentation à laquelle le wiki appartient.
+  Dans la terminologie employée par =ohow=, c'est le *root directory*.
+- Dans l'idée de rester le plus générique possible, =ohow= accepte les options
+  en ligne de commande suivantes :
+  - ~--root~ désigne le /root directory/,
+  - ~--manual~ désigne le dossier contenant les wikis du manuel (~a_manual~),
+  - ~--api~ désigne le dossier contenant les wikis de l'{{{api}}} (~a_api*~[fn:15]),
+  - ~--images~ désigne le dossier contenant les images (~a_img~), et,
+  - ~--assets~ désigne le dossier contenant les fichiers (~a_file~).
+  #+begin_note
+  Il n'est pas nécéssaire que les valeurs de ces options correspondent à des
+  dossiers réels /au moment de la compilation/. En effet, ces valeur sont seulement
+  utilisées pour déduire les liens relatifs produits par les extensions ~a_*~.
+  Naturellement, ces dossiers devront exister une fois le site déployé afin de ne
+  pas avoir de liens morts.
+  #+end_note
+
+#+begin_ex
+L'invocation de =ohow= suivante décrit l'architecture illustrée par la figure
+[[fig:ex-arch-ext]].
+#+BEGIN_SRC shell
+$ ohow --root eliom/4.0.1 \
+       --manual eliom/4.0.1/manual/src \
+       --api eliom/4.0.1/api \
+       --images eliom/4.0.1/manual/src/illustrations \
+       --assets eliom/4.0.1/manual/src/illustrations
+#+END_SRC
+#+end_ex
+
+#+NAME: fig:ex-arch-ext
+#+CAPTION: Exemple d'architecture compatible avec l'utilisation des extensions ~a_*~.
+#+begin_figure
+TODO
+#+end_figure
+
+Avec ces informations et contraintes supplémentaires, les extensions ~a_*~ peuvent
+déduire correctement chaque lien à générer. Si une de ces extensions est utilisée
+dans un wiki mais que les options correspondantes ne sont pas renseignées (par exemple
+si ~a_manual~ est rencontrée mais que ~--manual~ ou ~--root~ n'est pas renseigné), alors
+=ohow= devra s'arrêter sur une erreur.
+
+**** L'extension {{{wikiext(doctree)}}}
+Cette extension affiche le menu de la figure [[fig:doctree]]. C'est l'une des extensions
+les plus complexes à gérer pour =ohow= même si son fonctionnement reste relativement
+simple. Cette extension cherche des fichiers nommés ~menu.wiki~ dans le manuel et dans
+l'{{{api}}} (sous-projets inclus), les compile, et les inclus dans un élément {{{html}}}
+~<nav/>~ (élément ayant pour sémantique la navigation à travers le site). Le listing
+[[lst:menu-wiki-example]] montre le fichier ~menu.wiki~ du manuel du projet Eliom.
+
+Il faut donc maintenir cette extension en état de marche, sans toucher aux fichiers
+~menu.wiki~.
+
+#+NAME: fig:doctree
+#+CAPTION: Menu affiché par l'extension {{{wikiext(doctree)}}}.
+#+ATTR_LATEX: :height .35\paperheight
+[[./doctree.png]]
+
+#+NAME: lst:menu-wiki-example
+#+CAPTION: Fichier ~menu.wiki~ du manuel du projet Eliom.
+#+INCLUDE: "eliom-menu.wiki" src text
+
+**** L'extension {{{wikiext(docversion)}}}
+Cette extension affiche la liste déroulante de la figure [[fig:docversion]]. Elle permet
+de choisir la version de la documentation à afficher. Lorsque l'utilisateur choisit
+une version $X$ dans la liste, il doit être redirigé vers la page ~X/index.html~.
+#+begin_ex
+Par exemple, si l'utilisateur est sur la page https://ocsigen.org/eliom/6.3/manual/intro.html
+et qu'il sélectionne la version =2.1= dans la liste déroulante, il doit être redirigé
+vers https://ocsigen.org/eliom/2.1/index.html.
+#+end_ex
+
+Il faut donc maintenir cette extension en état de marche.
+
+#+NAME: fig:docversion
+#+CAPTION: Aperçu de l'extension {{{wikiext(docversion)}}}.
+#+ATTR_LATEX: :height .25\paperheight
+[[./docversion.png]]
+
+**** L'extension {{{wikiext(googlesearch)}}}
+Cette extension affiche une barre de recherche accompagnée d'un bouton permettant
+d'effectuer une recherche Google sur les pages du site https://ocsigen.org uniquement.
+Cela permet de naviguer dans la documentation plus rapidement.
+
+Cependant cette barre de recherche n'étant pas stylisée, elle jure avec le reste
+du site et il a été décidé de la masquer avec le code {{{css}}} ~display: none~
+(elle se situe normalement entre le {{{wikiext(docversion)}}} et le
+{{{wikiext(doctree)}}}).
+
+Il m'a donc été demandé de la styliser et de la placer à un endroit plus approprié.
+
+**** TODO L'extension {{{wikiext(client-server-switch)}}}
+**** L'extension {{{wikiext(content)}}}
+Cette extension ne se situe pas dans les wikis contenant la documentation
+mais dans des fichiers wiki spéciaux : les /templates/. Dans ces derniers,
+elle permet de spécifier l'endroit où insérer le contenu. Plus de détails
+sur ce mécanisme et sur cette extension sont exposés dans section [[sec:cdc-wit]],
+où est détaillé le cahier des charges d'un outil auxiliaire de =ohow= dédié
+à la gestion de ces templates.
+
+Puisque ce n'est donc pas la responsabilité de =ohow= que de gérer les
+templates, l'outil n'a donc pas à gérer cette extension.
+
+#+LaTeX: \begin{ffbox}{En bref}
+Un template est un fichier wikicréole classique contenant une occurence
+de l'extension {{{wikiext(content)}}}. Lorsqu'un wiki classique est
+compilé, son contenu est "copié-collé à la place" de cette extension
+dans le template, et le tout est ensuite compilé vers de l'{{{html}}}.
+
+Cela a pour effet de "rajouter" du code wikicréole avant et après le
+contenu de chaque wiki, nottament pour des questions de mise en page.
+C'est aussi dans le template que l'on spécifie l'agencement de la page ---
+la position relative du menu par rapport au contenu.
+
+Ce mécanisme permet de ne pas avoir à recopier (et maintenir) les parties
+communes à chaque page de la documentation.
+#+LaTeX: \end{ffbox}
+
+**** Les autres extensions
+Il n'est pas nécéssaire de réécrire ni même modifier les autres extensions
+du tableau [[tab:ext-to-support]].
+
+**** Gestion des liens vers les scripts et les feuilles de style
+Le site https://ocsigen.org utilise des feuilles de style en cascade ({{{css}}})
+ainsi qu'un certain nombre de scripts {{{lang(JavaScript)}}} pour, entre autres,
+colorer les morceaux de code {{{ocaml}}} que l'on peut trouver dans la documentation.
+
+Le lien vers ces ressources est codé en dur dans =how= (/"hardcoding"/), ce qui constitue
+une /mauvaise pratique de programmation/ puisqu'elle n'est ni générique, ni portable,
+ni maintenable aisément.
+
+Il me faut donc trouver une solution pour corriger cela. Coder une extension supplémentaire
+ayant ce rôle qui serait placée dans le template de chaque projet est une solution
+satisfaisante qui fonctionne.
+
+**** L'insertion conditionnelle de contenu
+Les figures [[fig:ocsigen.org]] et [[fig:ocsigen.org-lwt]] donnent un aperçu global de ce
+à quoi ressemble (et doit continuer à ressembler) le site https://ocsigen.org,
+avec deux wikis (contenus) différents. L'on y distingue les différents composants
+de la page :
+- le menu ({{{wikiext(doctree)}}}) de la documentation du projet,
+- l'en-tête de la page (balise {{{html}}} ~<header/>~) avec le logo et les liens
+  vers les principaux projets, identique pour toutes les pages du site,
+- le menu latéral rétractable (extension {{{wikiext(drawer)}}}), aussi identique
+  pour toutes les pages du site[fn:16], et enfin,
+- la partie centrale, où le contenu du wiki consulté est affiché.
+
+À l'exception du /contenu/ de la partie centrale, tout le reste est quasiment
+identique, /à quelques détails près/. Par exemple dans l'en-tête et le menu latéral,
+le projet courant est souligné en bleu (coloré en orange dans le menu). Cet effet est
+accompli en ajoutant une classe {{{css}}} --- ~mainmenu-current~ et
+~drawermainmenu-current~ --- au lien vers le projet courant dans ces menus.
+
+#+begin_ex
+Dans le fichier ~template.wiki~ du projet Eliom, l'on a[fn:17] :
+#+BEGIN_SRC text
+*@@class="mainmenu-current"@@[[wiki("eliom"):|Eliom]]
+*[[wiki("js_of_ocaml"):|Js_of_ocaml]]
+*[[wiki("lwt"):|Lwt]]
+
+[...]
+
+*@@class="drawermainmenu-current drawermainmenu-project"@@[[wiki("eliom"):|Eliom]]
+*@@class="drawermainmenu-project"@@[[wiki("js_of_ocaml"):|Js_of_ocaml]]
+*@@class="drawermainmenu-project"@@[[wiki("ocsigenserver"):|Server]]
+*@@class="drawermainmenu-project"@@[[wiki("lwt"):|Lwt]]
+#+END_SRC
+alors que dans le fichier ~template.wiki~ du projet Lwt, l'on a le code suivant,
+/presque identique/ à l'exception de la position des classes ~mainmenu-current~ et
+~drawermainmenu-current~ :
+#+BEGIN_SRC text
+*[[wiki("eliom"):|Eliom]]
+*[[wiki("js_of_ocaml"):|Js_of_ocaml]]
+*@@class="mainmenu-current"@@[[wiki("lwt"):|Lwt]]
+
+[...]
+
+*@@class="drawermainmenu-project"@@[[wiki("eliom"):|Eliom]]
+*@@class="drawermainmenu-project"@@[[wiki("js_of_ocaml"):|Js_of_ocaml]]
+*@@class="drawermainmenu-project"@@[[wiki("ocsigenserver"):|Server]]
+*@@class="drawermainmenu-current drawermainmenu-project"@@[[wiki("lwt"):|Lwt]]
+#+END_SRC
+#+end_ex
+
+La majorité du code est donc /dupliquée/ dans les différents fichiers ~template.wiki~
+de tous les projets et les seules différences se situent au niveau de /détails/ comme
+les classes {{{css}}} évoquées précedemment. La duplication de code étant une mauvaise
+pratique de programmation, il m'a été demandé de trouver une solution afin de n'avoir
+/qu'un seul fichier ~template.wiki~ pour tous les projets/ et de trouver un moyen
+d'ajouter cette classe automatiquement lors de la compilation.
+
+Ceci peut être accompli en implantant une extension ~when-project~, qui n'insère
+son contenu que si le wiki en train d'être compilé appartient au projet spécifié.
+
+#+NAME: fig:ocsigen.org
+#+CAPTION: Aperçu du site https://ocsigen.org (page d'accueil du projet Eliom).
+[[./ocsigen.org.png]]
+
+#+NAME: fig:ocsigen.org-lwt
+#+CAPTION: Aperçu du site https://ocsigen.org (page d'accueil du projet Lwt).
+[[./ocsigen.org-lwt.png]]
+
+**** Documentation
+Que =ohow= soit destiné à un usage interne uniquement ou à être publié, il est
+impératif de le documenter. De plus, étant un outil de gestion de documentation,
+il est necéssaire que sa documentation soit parfaitement claire, précise et soignée.
+Cela permet aussi de démontrer l'efficacité de l'outil s'il est capable générer
+sa propre documentation.
+
+Il faut donc écrire la documentation de =ohow= en wikicréole étendu et la compiler
+avec =ohow=.
+
+*** L'outil auxiliaire de =ohow= : wiki_in_template <<sec:cdc-wit>>
+Comme expliqué dans le paragraphe sur l'extension {{{wikiext(content)}}} de la section
+[[sec:cdc-ohow]], il doit être possible d'inclure le contenu de chaque wiki dans un fichier
+spécial : le /template/ (ou /patron/). Ces fichiers sont différents dans le sens où ils
+contiennent une (ou plusieurs) occurence(s) de cette extension.
+
+Cependant, toujours afin de rester dans l'idée que chaque programme ne doit faire
+qu'une seule chose[fn:8], il a été décidé que la fonction d'insetion de /contenu/
+dans un template doit être le but d'un outil distinct. En effet, =ohow= est un
+/compilateur wikicréole \rightarrow {{{html}}}/ : celui-ci prend donc en entrée "du code
+wikicréole" et sort "du code {{{html}}} équivalent", alors que la fonction
+qui /"inline"/ (insère) un wiki dans son template est une fonction qui prend en
+entrée "deux codes wikicréole" et sort "un code wikicréole (le second dans le
+premier)".
+
+Ce sont donc deux fonctionalités /complètement orthogonales/ (c'est-à-dire
+que l'on peut très bien utiliser l'une sans l'autre) pour deux outils
+/bien distincts/. L'outil donc chargé /d'inline/ un wiki dans un template
+est donc /wiki_in_template/[fn:18], abbrégé =wit=.
+
+**** Objectifs
+- =wit= doit être un outil en ligne de commande Unix.
+- Il doit permettre d'insérer le contenu /d'un/ wiki dans /un/ template.
+- Aucun de ces deux fichiers ne doit être modifié.
+- Le contenu du wiki est inséré à la place de la /première balise/ {{{wikiext(content)}}}.
+
+**** Interface
+- La commande =wit= prend en seul argument (requis) un /fichier/ : le template.
+- Elle lit le contenu du wiki à insérer sur /l'entrée standard/ ~stdin~.
+- Le résultat de l'insertion est envoyé vers /la sortie standard/ ~stdout~.
+
+Cette interface simple faisant une utilisation massive des flux d'entrée et de
+sortie standard permet à =wit= d'être /extrêmement composable/ et ainsi permettre
+l'utilisation de /plusieurs templates/ pouvant contenir chacun /plusieurs balises/
+{{{wikiext(content)}}}.
+
+En effet, pour deux templates ~t1.wiki~ et ~t2.wiki~ (contenant chacun une seule
+balise {{{wikiext(content)}}}) et un wiki ~content.wiki~, insérer ce dernier dans
+le premier template puis dans le second revient à exécuter le code shell du listing
+[[lst:wiki-t1-t2]]. Cette commande produit le résultat escompté sur ~stdout~ (que l'on
+peut éventuellement rediriger facilemnt vers un fichier de sortie).
+
+#+NAME: lst:wiki-t1-t2
+#+CAPTION: Commande d'insertion d'un wiki dans deux templates.
+#+BEGIN_SRC shell
+  cat content.wiki | wit t1.wiki | wit t2.wiki
+#+END_SRC
+
+C'est avec la même simplicité que l'on peut gérer le cas de l'insertion de
+/deux contenus/ ~c1.wiki~ et ~c2.wiki~ dans /un seul/ template ~template.wiki~
+(contenant au moins deux balises {{{wikiext(content)}}}), comme l'illustre le
+listing [[lst:c1-c2-template]][fn:19].
+
+#+NAME: lst:c1-c2-template
+#+CAPTION: Commande d'insertion de deux contenus dans un seul template.
+#+BEGIN_SRC shell
+  wit <(wit template.wiki < c1.wiki) < c2.wiki
+#+END_SRC
+
+Enfin, les deux cas traités précédemment fonctionnent une fois généralisés à plus
+de deux templates et deux wikis, et peuvent être combinés, puisque la sortie
+de =wit= peut à la fois avoir fonction de template que de contenu.
+
+#+begin_note
+Il est important de comprendre que cette puissance provient de la combinaison de
+la simplicité de la conception de =wit=, de son adéquation avec la philosophie
+d'Unix et de la puissance du langage shell.
+#+end_note
+
+**** Exemples
+- Le listing [[lst:wit-ex-2t1c]] montre le résultat de l'insertion d'un wiki dans
+  deux templates.
+- Le listing [[lst:wit-ex-1t2c]] montre le résultat de l'insertion de deux wikis dans
+  un seul template.
+# TODO
+# - Le listing [[lst:wit-ex-2t2c]] montre le résultat de l'insertion de plusieurs wikis dans
+#   un plusieurs templates.
+
+
+#+NAME: lst:wit-ex-2t1c
+#+CAPTION: Exemple d'insertion d'un wiki dans deux templates.
+#+INCLUDE: "wit-ex-2t1c.sh" src shell
+
+#+NAME: lst:wit-ex-1t2c
+#+CAPTION: Exemple d'insertion de deux wikis dans un template.
+#+INCLUDE: "wit-ex-1t2c.sh" src shell
+
+La figure [[fig:ohow-pipeline]] schématise la /pipeline/ (chaîne de processus) mise
+en place pour compiler un contenu wikicréole avec ses différents templates (encore
+une fois, leur nombre n'est évidemment pas limité à 2).
+
+#+NAME: fig:ohow-pipeline
+#+CAPTION: /Pipeline/ de compilation d'un wiki avec templates.
+#+begin_figure
+#+BEGIN_CENTER
+#+INCLUDE: "ohow-pipeline.tex" export latex
+#+END_CENTER
+#+end_figure
+
+*** Générer une version d'un projet : doc_of_project<<sec:cdc-dop>>
+**** Objectifs
+**** Interface
+*** Gestion de la documentation du project Ocsigen
+*** Intégration continue : Travis {{{acr(Ci)}}}
+* Annexes
+** Le Wikicréole<<sec:anx-wikicreole>>
+Le wikicréole est un format de mise en forme de texte de la famille des formats
+wiki. Sa dernière version en date est la =1.0=.
+
+*** Standard
+La figure [[fig:creole-cheatsheet]] résume le standard wikicréole. Noter que cette
+image ommet de parler du carctère d'échappement ~~~ qui permet de ne pas interpréter
+l'élément qu'il précède.
+
+#+NAME: fig:creole-cheatsheet
+#+CAPTION: Résumé du standard wikicréole =1.0=
+#+ATTR_LATEX: :height .35\paperheight
+[[./creole_cheat_sheet.jpg]]
+
+#+begin_note
+Dans le wikicréole supporté par le projet Ocsigen, les titres de premier niveau
+sont préfixés par un seul caractère ~=~. Un tel titre s'écrit alors
+~= Premier niveau (h1)~ et un titre de niveau inférieur s'écrit
+~== Second niveau (h2)~, ~=== Troisième niveau (h3)~, etc.
+#+end_note
+
+*** Additions du projet Ocsigen
+**** Liens
+Le tableau [[tab:links]] liste les syntaxes de liens ajoutées et le tableau
+[[tab:abbr]] les abbréviations disponibles.
+
+#+begin_note
+Une ancienne syntaxe dont BeSport souhaitait se débarasser permettait d'identifier
+un wiki avec un identifiant unique : {{{wikilink(wiki(id):page)}}}. Cette syntaxe
+étant assez obscure pour le lecteur (~wiki(12)~ est moins explicite que ~wiki("eliom")~),
+il a été décidé qu'elle ne serait plus maintenue.
+#+end_note
+
+#+NAME: tab:links
+#+CAPTION: Syntaxes de liens ajoutées par le projet Ocsigen.
+#+begin_table
+|-----------------------------------+-----------------------------------------------|
+| Syntaxe                           | Description                                   |
+|-----------------------------------+-----------------------------------------------|
+| {{{wikilink(wiki("name"):page)}}} | Lien vers la ~page~ du wiki ~name~.           |
+| {{{wikilink(wiki:page)}}}         | Lien vers la ~page~ du wiki courant.          |
+| {{{wikilink(site:href)}}}         | Lien relatif à la racine du site.             |
+| {{{wikilink(href:path)}}}         | Valeur de l'attibut ~href~ du lien explicite. |
+|-----------------------------------+-----------------------------------------------|
+#+end_table
+
+#+NAME: tab:abbr
+#+CAPTION: Syntaxes d'abbréviations de liens ajoutées par le projet Ocsigen.
+#+begin_table
+|---------------------------+------------------------------+-----------------------------------------------|
+| Abbréviation              | Équivalence                  | Description                                   |
+|---------------------------+------------------------------+-----------------------------------------------|
+| {{{wikilink()}}}          | {{{wikilink(href:.)}}}       | Page courante.                                |
+| {{{wikilink(\#anchor)}}}  | {{{wikilink(href:\#anchor)}}} | Page courante (avec ancre).                   |
+| {{{wikilink(/path)}}}     | {{{wikilink(site:path)}}}    | Lien relatif à la racine du site.             |
+| {{{wikilink(path)}}}      | {{{wikilink(href:path)}}}    | Lien relatif.                                 |
+|---------------------------+------------------------------+-----------------------------------------------|
+#+end_table
+
+**** Décorations
+Le tableau [[tab:d&co]] liste les décorations ajoutées par le projet Ocsigen.
+Est aussi ajouté un autre type de listes : les /listes de définitions/.
+Le code wikicréole du listing [[lst:wiki-def-list]] peut ainsi générer la liste
+de définitions suivante :
+
+- Ben Kenobi :: Jedi
+- Général Grievous :: Sith
+- Anakin Skywalker/Dark Vador :: C'est compliqué...
+
+#+NAME: tab:d&co
+#+CAPTION: Décorations ajoutées au wikicréole par le projet Ocsigen.
+#+begin_table
+|--------------------------+----------------------+--------------------|
+| Syntaxe                  | Description          | Exemple            |
+|--------------------------+----------------------+--------------------|
+| ~--~                     | /en-dash/            | --                 |
+| \code{-\relax -\relax -} | /em-dash/            | ---                |
+| ~##text##~               | Police à chasse fixe | =text=             |
+| ~^^super^^~              | Exposant             | \({}^{\text{super}}\) |
+| ~,,sub,,~                | Indice               | \({}_{\text{sub}}\)   |
+| ~__garageline__~         | Soulignement         | _garageline_       |
+| ~/-text-/~               | Barrage              | +text+             |
+|--------------------------+----------------------+--------------------|
+#+end_table
+
+#+NAME: lst:wiki-def-list
+#+CAPTION: Une liste de définitions en wikicréole (non-standard).
+#+BEGIN_SRC text
+  ;Ben Kenobi
+  :Jedi
+  ;Général Grievous
+  :Sith
+  ;Anakin Skywalker/Dark Vador
+  :C'est compliqué...
+#+END_SRC
+
+**** Extensions
+Comme expliqué dans la section [[sec:cdc-ohow]], le wikicréole Ocsigen inclut un
+puissant système d'extensions avec la syntaxe suivante :
+{{{wikiext(ext attr1="val1" attr2="val2" | content)}}}, où le contenu ~content~
+est analysé récusivement et les valeurs ~valN~ non.
+
+**** Classes {{{html}}} /inline/
+Il est enfin possible d'ajouter des classes {{{html}}} à des éléments
+individuellement. Par exemple, ~@@class="title"@@== Level 2 heading~
+génère ~<h2 class="title">Level 2 heading</h2>~.
+
+** GitHub Pages<<sec:anx-ghpages>>
+TODO
 
 * Footnotes
 
-[fn:12] /Application Programming Interface/ ou "interface de programmation applicative", désigne l'ensemble
-des /fonctionnalités/ (fonctions, classes, variables, etc.) que le concepteur d'un service fournit à son
+[fn:1] Laboratoire de Recherche et Développement de l'ÉPITA
+
+[fn:2] Institut National de Recherche en Informatique et en Automatique
+
+[fn:3] Il existe en {{{ocaml}}} une convention de nommage pour les fonctions de conversion. Par exemple, la fonction standard
+qui convertit un ~int~ en ~string~ s'appelle ~string_of_int~. C'est en suivant cette convention que l'outil qui transforme du
+wikicréole en {{{html}}} s'appelle html_of_wiki.
+
+[fn:4] Cela est dû au fonctionnement de GitHub Pages. Pour plus d'information consulter l'annexe TODO sur GitHub Pages.
+
+[fn:5] GitHub Pages permet de définir des redirections sous forme de liens symboliques. Consulter l'annexe TODO pour plus d'informations.
+
+[fn:6] Toutes les extensions acceptent les attributs ~class~ et ~id~ correspondant aux attributs {{{html}}} de même nom.
+
+[fn:7] Les descriptions données sont simplement indicatives. Les extensions complexes seront décrites avec plus de précision
+lors de l'explication des problèmes techniques qu'elles causent.
+
+[fn:8] Cela permet de rendre le programme plus simple à maintenir mais aussi plus en accord avec la philosophie
+Unix. "Make each program do one thing well."
+
+[fn:9] Ceci ne concerne que les liens entre les pages du projet. Les liens vers d'autres sites web sont nécéssairement absolus.
+
+[fn:10] Une utilisation idomatique de la ligne de commande des systèmes Unix est de composer différents programmes
+simples pour réaliser une action complexe. "Expect the output of every program to become the input to another, as yet unknown, program."
+
+[fn:11] Il existe d'autres syntaxes standard pour les liens, ainsi que de nombreuses abbréviations. Pour plus
+d'informations, consulter l'annexe [[sec:anx-wikicreole]] sur le wikicréole.
+
+[fn:12] L'on parle de "chapitre" pour désigner les pages web du manuel et de "page" pour désigner les pages web de(s) {{{api}}}(s),
+mais les deux termes désignent bien tous deux des pages {{{html}}} classique.
+
+[fn:13] /Application Programming Interface/ ou "interface de programmation applicative", désigne l'ensemble
+des /fonctionnalités/ (fonctions, classes, types, etc.) que le concepteur d'un service fournit à son
 utilisateur. L'{{{api}}} constitue le /sous-ensemble/ de l'implémentation du service qui est /ouvert/ à
 ses utilisateurs et auquel ces derniers sont censés se limiter.
 
-[fn:11] Il existe d'autres syntaxes standard pour les liens, ainsi que de nombreuses abbréviations. Pour plus
-d'informations, consulter l'annexe TODO sur le wikicréole.
+[fn:14] Il y a également un mécanisme (désirable) intégré à GitHub Pages concernant ~index.html~. Consulter l'annexe
+TODO sur GitHub Pages pour plus de détail.
 
-[fn:10] Cela permet de rendre le programme plus simple à maintenir mais aussi plus en accord avec la philosophie
-Unix. "Make each program do one thing well."
+[fn:15] La notation ~foo*~ est tirée de la syntaxe shell (plus spécifiquement du /globbing/) afin de désigner tous les fichiers
+préfixés par ~foo~. Cette notation est utilisée ici pour dénoter toutes les extensions préfixées par ~a_api~, c'est-à-dire
+~a_api~, ~a_api_code~ et ~a_api_type~. De la même manière ~a_*~ désigne toutes les extensions ayant fonction de lien implantées
+pour le projet Ocsigen.
 
-[fn:9] Une utilisation idomatique de la ligne de commande des systèmes Unix est de composer différents programmes
-simples pour réaliser une action complexe. "Expect the output of every program to become the input to another, as yet unknown, program."
+[fn:16] Le site web est dit /responsive/, c'est-à-dire qu'il s'adapte aux différentes résolutions d'appareils (laptop,
+tablette, smartphone, etc.) et lorsque la largeur est trop faible, le menu de gauche "se déplace" dans le menu droite.
+Il n'y a en réalité aucun travail supplémentaire à fournir du côté du compilateur de wikicréole, c'est un travail
+de webdesign essentiellement en {{{css}}}.
 
-[fn:8] Ceci ne concerne que les liens entre les pages du projet. Les liens vers d'autres sites web sont nécéssairement absolus.
+[fn:17] La syntaxe ~@@class="cls"@@~ permet d'ajouter une classe {{{html}}} à l'élément suivant. Voir l'annexe [[sec:anx-wikicreole]]
+sur le wikicréole pour plus d'informations.
 
-[fn:7] Toutes les extensions acceptent les attributs ~class~ et ~id~ correspondant aux attributs {{{html}}} du même nom.
+[fn:18] Une légère adaptation de la convention de nommage ~A_of_B~ d'{{{ocaml}}} ("wiki_of_template" n'aurait pas eu beaucoup
+de sens puisque les deux sont paramètres de l'outil).
 
-[fn:6] Les descriptions données sont simplement indicatives. Les extensions complexes seront décrites avec plus de précision
-lors de l'explication des problèmes techniques qu'elles causent.
-
-[fn:5] Institut National de Recherche en Informatique et en Automatique
-
-[fn:4] Laboratoire de Recherche et Développement de l'ÉPITA
-
-[fn:3] GitHub Pages permet de définir des redirections sous forme de liens symboliques. Consulter l'annexe TODO pour plus d'informations.
-
-[fn:2] Cela est dû au fonctionnement de GitHub Pages. Pour plus d'information consulter l'annexe TODO sur GitHub Pages.
-
-[fn:1] Il existe en {{{ocaml}}} une convention de nommage pour les fonctions de conversion. Par exemple, la fonction standard
-qui convertit un ~int~ en ~string~ s'appelle ~string_of_int~. C'est en suivant cette convention que l'outil qui transforme du
-wikicréole en {{{html}}} s'appelle =html_of_wiki=.
+[fn:19] Afin de simplifier l'écriture de celle-ci la commande du listing [[lst:c1-c2-template]] utilise une fonctionnalité
+/non-{{{acr(Posix)}}}/ : les /process substitutions/. Il est néanmoins possible d'obtenir le même effet avec plusieurs
+commandes et l'utilisation de fichiers temporaires.

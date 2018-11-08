@@ -1,0 +1,17 @@
+\begin{tikzpicture}[every node/.style={font=\footnotesize\tt},
+  wit/.style={rectangle,draw=black},
+  ohow/.style={ellipse,draw=black},
+  arrow/.style={->,thick}]
+  \node (wiki) {wiki.wiki};
+  \node[wit,below=of wiki] (wit1) {wit template1.wiki};
+  \node[wit,below=of wit1] (wit2) {wit template2.wiki};
+  \node[wit,below=2 of wit2] (witN) {wit templateN.wiki};
+  \node[ohow,below=of witN] (ohow) {ohow [OPTIONS]};
+  \node[below=of ohow] (html) {HTML produit};
+
+  \draw[arrow] (wiki) -- (wit1);
+  \draw[arrow] (wit1) -- (wit2);
+  \draw[arrow] (wit2) -- (witN) node [midway,fill=white] {\(\vdots\)};
+  \draw[arrow] (witN) -- (ohow);
+  \draw[arrow] (ohow) -- (html);
+\end{tikzpicture}

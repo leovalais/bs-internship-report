@@ -91,6 +91,22 @@
                   text nil t)))
         ;; Else use format string.
         (t (format fmt text)))))
+
+  (defun org-latex-horizontal-rule (horizontal-rule _contents info)
+    "Transcode an HORIZONTAL-RULE object from Org to LaTeX.
+  CONTENTS is nil.  INFO is a plist holding contextual information."
+    (let ((attr (org-export-read-attribute :attr_latex horizontal-rule))
+          (prev (org-export-get-previous-element horizontal-rule info)))
+      (concat
+       ;; Make sure the rule doesn't start at the end of the current
+       ;; line by separating it with a blank line from previous element.
+       (when (and prev
+                  (let ((prev-blank (org-element-property :post-blank prev)))
+                    (or (not prev-blank) (zerop prev-blank))))
+         "\n")
+       ;; NOTE not authorising rules inside labels (whereas org seems to accept it)
+       ;; 3 stars in a row asterism
+       "\\bigskip\\noindent\\textcolor{gray}{\\small\\centerline{*\\,*\\,*}}\\medskip")))
 #+END_SRC
 
 #+NAME: setup-latex-env
@@ -110,7 +126,7 @@
 % \fancyhead[RE,LO]{Guides and tutorials}
 % \fancyfoot[CE,CO]{\thepage}
 
-\titleformat{\section}{\Large\bf\clearpage}{\thesection}{1em}{}[\color{gray}\titlerule]
+\titleformat{\section}{\Large\bf\clearpage}{\thesection}{1em}{}[\color{gray!50!white}\titlerule]
 % \titleformat{\subsection}[runin]{\large\bf}{\thesubsection}{.5em}{}[\color{gray}\rule{\fill}{1mm}]
 % \titleformat{\subsubsection}{\normalsize\it}{\thesubsubsection}{.25em}{}[\color{gray}\titlerule]
 
@@ -122,7 +138,7 @@
 \renewenvironment{quote}{%
   \begin{center}
     \bigquotemark{\og}
-    \begin{minipage}{.75\textwidth}\small\it\color{gray!50!dark}
+    \begin{minipage}{.75\textwidth}\small\it\color{gray!50!black}
     }{%
     \end{minipage}
     \bigquotemark{\fg}
@@ -148,6 +164,7 @@ comme on veut.
 #+MACRO: css {{{acr(Css)}}}
 #+MACRO: wikiext \sloppy\code{<\relax <$1>\relax >}
 #+MACRO: wikilink \sloppy\code{[[$1]]}
+#+MACRO: travis Travis {{{acr(Ci)}}}
 
 #+BEGIN_COMMENT
 TODO
@@ -156,6 +173,9 @@ TODO
 - faire la présentation de BeSport
 - intégrer mon thème latex
 - styliser les tableaux
+- fancyhead, fancyfoot
+- références explicite (figure X on front page) + en français
+- supprimer les cadres autour des liens
 #+END_COMMENT
 
 #+BEGIN_EXPORT latex
@@ -209,8 +229,7 @@ essentiellement pour deux raisons :
 
 Le sujet proposé sur la convention est :
 #+BEGIN_QUOTE
-Développement de bibliothèques pour l'application Be Sport.
-Le but du stage est de développer de nouveaux modules pour les applications Web
+=[...]= Le but du stage est de développer de nouveaux modules pour les applications Web
 et mobiles Be Sport : outils d'importation de données, amélioration des outils de
 développement (dans le cadre du projet libre Ocsigen), développement de widgets
 spécifiques, interaction avec la base de données, mise en place de tests de l'application.
@@ -238,10 +257,12 @@ Mes attentes par rapport à ce stage sont multiples.
 - Découvrir la programmation multi-tiers au travers du projet Ocsigen.
 - Une introduction à l'univers de la startup et les différentes méthodologies
   de travail telles qu'{{{acr(Agile)}}} et {{{acr(Scrum)}}} et les pratiques associées.
+- Une introduction aux tâches de /DevOps/, en particulier l'intégration continue
+  ({{{acr{Ci)}}}) en mileu professionnel.
 - Une première expérience de la collaboration à plus grande échelle que les
   projets scolaires, avec des enjeux réels.
 
-* Présentation de BeSport
+* TODO Présentation de BeSport
 ** Le secteur d'activité
 ** L'entreprise
 *** Présentation
@@ -417,8 +438,9 @@ objectifs de cette mission sont les suivants.
 - l'améliorer et régler ses différents problèmes techniques (barre de recherche,
   design, etc.),
 - trouver une solution pour se passer du dépôt ~ocsigen.org-data~, et,
-- éventuellement rendre =ohow= suffisament indépendant du projet Ocsigen pour
-  pouvoir le diffuser et qu'il puisse être utilisé sur d'autres projets.
+- éventuellement rendre =ohow= suffisament indépendant de l'infrastructure
+  du projet Ocsigen pour pouvoir le diffuser et qu'il puisse être utilisé
+  sur d'autres projets.
 
 L'on commence par spécifier le langage que doit supporter =ohow=, puis l'on dresse
 son cahier des charges détaillé. Nous continuons par la description de celui
@@ -563,7 +585,7 @@ web et conforme à la [[https://www.w3.org/standards/][norme W3C]]. L'outil doit
 #+END_SRC
 #+end_listing
 
-**** Les Liens
+**** TODO Les Liens
 Le cas des liens est complexe, déjà car il existe deux manières d'écrire un lien
 en wikicréole étendu :
 - avec la syntaxe wikicréole standard, par exemple
@@ -603,7 +625,7 @@ Cette fonction est appelée par le compilateur /directement/ et est au coeur du
 processus de compilation.
 
 #+NAME: lst:example-href_of_link
-#+CAPTION: Comment est généré le lien {{{html}}} correspondant à {{{wikilink(wiki(eliom):intro|goto intro)}}}.
+#+CAPTION: Compilation du lien {{{wikilink(wiki(eliom):intro|goto intro)}}}.
 #+begin_listing
 #+BEGIN_SRC ocaml
   (* Pour le lien [[wiki(eliom):intro|goto intro]], la fonction [href_of_link] est appelée ainsi : *)
@@ -755,6 +777,7 @@ l'{{{api}}} (sous-projets inclus), les compile, et les inclus dans un élément 
 
 Il faut donc maintenir cette extension en état de marche, sans toucher aux fichiers
 ~menu.wiki~.
+Cette extension n'accepte pas d'attributs ni de contenu.
 
 #+NAME: fig:doctree
 #+CAPTION: Menu affiché par l'extension {{{wikiext(doctree)}}}.
@@ -776,6 +799,7 @@ vers https://ocsigen.org/eliom/2.1/index.html.
 #+end_ex
 
 Il faut donc maintenir cette extension en état de marche.
+Cette extension n'accepte pas d'attributs ni de contenu.
 
 #+NAME: fig:docversion
 #+CAPTION: Aperçu de l'extension {{{wikiext(docversion)}}}.
@@ -793,8 +817,36 @@ du site et il a été décidé de la masquer avec le code {{{css}}} ~display: no
 {{{wikiext(doctree)}}}).
 
 Il m'a donc été demandé de la styliser et de la placer à un endroit plus approprié.
+Cette extension n'accepte pas d'attributs ni de contenu.
 
-**** TODO L'extension {{{wikiext(client-server-switch)}}}
+**** L'extension {{{wikiext(client-server-switch)}}}
+Certaines parties de l'{{{api}}} (modules, types, etc.) de certains projets extistent
+en deux versions : une version /client/ et une version /serveur/[fn:16]. C'est par exemple
+le cas pour le module ~Eliom_lib~ du projet Eliom.
+
+#+LaTeX: \begin{ffbox}[note]{Résumé}
+Grâce au outils du projet Ocsigen, il est possible d'annoter quel morceau de code
+est du code client, du code serveur, ou les deux. C'est ensuite à la compilation
+que la séparation se fait et que les deux binaires (un pour le client, un pour
+le serveur) sont générés. Certains modules (comme ~Eliom_lib~) existent donc
+en deux versions (puisque les fonctionnalités qu'ils offrent ont une utilité des
+deux côtés).
+#+LaTeX: \end{ffbox}
+
+C'est pourquoi, sur la page de documentation de ces modules, l'on trouve le
+composant illustré par la figure [[fig:csw-demo]] et produit par l'extension
+{{{wikiext(client-server-switch)}}}. Cependant celui-ci est considéré
+comme peu intuitif, mal stylisé et mal positionné (entre le
+{{{wikiext(docversion)}}} et le {{{wikiext(doctree)}}}).
+
+Il m'a été demandé de le remplacer, en le rendant plus ésthétique, en améliorant
+sa position dans la page et tout en conservant sa fonction.
+Cette extension n'accepte pas d'attributs ni de contenu.
+
+#+NAME: fig:csw-demo
+#+CAPTION: L'extension {{{wikiext(client-server-switch)}}} telle qu'elle était à mon arrivée.
+[[./csw-demo.png]]
+
 **** L'extension {{{wikiext(content)}}}
 Cette extension ne se situe pas dans les wikis contenant la documentation
 mais dans des fichiers wiki spéciaux : les /templates/. Dans ces derniers,
@@ -847,7 +899,7 @@ de la page :
 - l'en-tête de la page (balise {{{html}}} ~<header/>~) avec le logo et les liens
   vers les principaux projets, identique pour toutes les pages du site,
 - le menu latéral rétractable (extension {{{wikiext(drawer)}}}), aussi identique
-  pour toutes les pages du site[fn:16], et enfin,
+  pour toutes les pages du site[fn:17], et enfin,
 - la partie centrale, où le contenu du wiki consulté est affiché.
 
 À l'exception du /contenu/ de la partie centrale, tout le reste est quasiment
@@ -857,7 +909,7 @@ accompli en ajoutant une classe {{{css}}} --- ~mainmenu-current~ et
 ~drawermainmenu-current~ --- au lien vers le projet courant dans ces menus.
 
 #+begin_ex
-Dans le fichier ~template.wiki~ du projet Eliom, l'on a[fn:17] :
+Dans le fichier ~template.wiki~ du projet Eliom, l'on a[fn:18] :
 #+BEGIN_SRC text
 *@@class="mainmenu-current"@@[[wiki("eliom"):|Eliom]]
 *[[wiki("js_of_ocaml"):|Js_of_ocaml]]
@@ -933,18 +985,21 @@ premier)".
 Ce sont donc deux fonctionalités /complètement orthogonales/ (c'est-à-dire
 que l'on peut très bien utiliser l'une sans l'autre) pour deux outils
 /bien distincts/. L'outil donc chargé /d'inline/ un wiki dans un template
-est donc /wiki_in_template/[fn:18], abbrégé =wit=.
+est donc /wiki_in_template/[fn:19], abbrégé =wit=.
 
 **** Objectifs
 - =wit= doit être un outil en ligne de commande Unix.
 - Il doit permettre d'insérer le contenu /d'un/ wiki dans /un/ template.
 - Aucun de ces deux fichiers ne doit être modifié.
 - Le contenu du wiki est inséré à la place de la /première balise/ {{{wikiext(content)}}}.
+- Cette extension n'accepte pas d'attributs ni de contenu.
 
 **** Interface
 - La commande =wit= prend en seul argument (requis) un /fichier/ : le template.
 - Elle lit le contenu du wiki à insérer sur /l'entrée standard/ ~stdin~.
 - Le résultat de l'insertion est envoyé vers /la sortie standard/ ~stdout~.
+
+-----
 
 Cette interface simple faisant une utilisation massive des flux d'entrée et de
 sortie standard permet à =wit= d'être /extrêmement composable/ et ainsi permettre
@@ -966,7 +1021,7 @@ peut éventuellement rediriger facilemnt vers un fichier de sortie).
 C'est avec la même simplicité que l'on peut gérer le cas de l'insertion de
 /deux contenus/ ~c1.wiki~ et ~c2.wiki~ dans /un seul/ template ~template.wiki~
 (contenant au moins deux balises {{{wikiext(content)}}}), comme l'illustre le
-listing [[lst:c1-c2-template]][fn:19].
+listing [[lst:c1-c2-template]][fn:20].
 
 #+NAME: lst:c1-c2-template
 #+CAPTION: Commande d'insertion de deux contenus dans un seul template.
@@ -984,7 +1039,7 @@ la simplicité de la conception de =wit=, de son adéquation avec la philosophie
 d'Unix et de la puissance du langage shell.
 #+end_note
 
-**** Exemples
+**** TODO Exemples
 - Le listing [[lst:wit-ex-2t1c]] montre le résultat de l'insertion d'un wiki dans
   deux templates.
 - Le listing [[lst:wit-ex-1t2c]] montre le résultat de l'insertion de deux wikis dans
@@ -1014,11 +1069,37 @@ une fois, leur nombre n'est évidemment pas limité à 2).
 #+END_CENTER
 #+end_figure
 
-*** Générer une version d'un projet : doc_of_project<<sec:cdc-dop>>
+*** TODO Générer une version d'un projet : doc_of_project<<sec:cdc-dop>>
 **** Objectifs
 **** Interface
 *** Gestion de la documentation du project Ocsigen
-*** Intégration continue : Travis {{{acr(Ci)}}}
+Comme indiqué dans la section [[sec:ohow-but-grl]], il m'a été demandé de régler deux
+problèmes distincts :
+- celui de remplacer =how= par un outil plus souple et,
+- /simplifier/ et /automatiser/ la gestion de la documentation des projets.
+
+**** Simplification
+- fusion de tous les fichiers ~template.wiki~ (voir la section [[sec:cdc-ohow]]),
+- suppression du dépôt =ocsigen.org-data= (voir la section [[sec:ohow-but-grl]]), et,
+- gestion des liens symboliques faisant office de redirections[fn:21] automatique.
+
+**** Automatisation
+Il m'a également été demandé de mettre en place un /job d'intégration continue/
+avec {{{travis}}}. Ce job doit être composé des /phases/ suivantes :
+- /Build/ :: il faut tout d'abord compiler les wikis :
+  - insérer tous les wikis dans leur(s) template(s) (dans le bon ordre),
+  - compiler toutes les versions du projet,
+  - lancer un /outil de détection de liens morts/ sur les pages {{{html}}}
+    ainsi générées.
+- /Post-build tests/ :: après la phase précédente, il faut vérifier que :
+  - toutes les compilations ont terminées avec succès (pas d'erreur de syntaxe,
+    d'utilisation de fonctionalités dépréciées, etc.),
+  - l'outil de détection de liens morts n'en a trouvé aucun.
+- /Deploy/ :: enfin, si les tests post-compilation sont tous passés, il faut
+              déployer le site généré sur GitHub Pages, c'est-à-dire en poussant
+              (~git push~) les fichiers {{{html}}} sur la branche ~gh-pages~ du
+              projet[fn:21].
+
 * Annexes
 ** Le Wikicréole<<sec:anx-wikicreole>>
 Le wikicréole est un format de mise en forme de texte de la famille des formats
@@ -1085,9 +1166,22 @@ Est aussi ajouté un autre type de listes : les /listes de définitions/.
 Le code wikicréole du listing [[lst:wiki-def-list]] peut ainsi générer la liste
 de définitions suivante :
 
-- Ben Kenobi :: Jedi
-- Général Grievous :: Sith
-- Anakin Skywalker/Dark Vador :: C'est compliqué...
+#+LaTeX: \begin{exampleffbox}{}\footnotesize
+- Ben Kenobi :: Humain --- Jedi
+- Général Grievous :: Robot --- Sith
+- Anakin Skywalker/Dark Vador :: C'est compliqué... --- ...oh oui, très compliqué...
+#+LaTeX: \end{exampleffbox}
+
+#+NAME: lst:wiki-def-list
+#+CAPTION: Une liste de définitions en wikicréole (non-standard).
+#+BEGIN_SRC text
+  ;Ben Kenobi
+  :Humain --- Jedi
+  ;Général Grievous
+  :Robot --- Sith
+  ;Anakin Skywalker/Dark Vador
+  :C'est compliqué... --- ...oh oui, très compliqué...
+#+END_SRC
 
 #+NAME: tab:d&co
 #+CAPTION: Décorations ajoutées au wikicréole par le projet Ocsigen.
@@ -1100,21 +1194,10 @@ de définitions suivante :
 | ~##text##~               | Police à chasse fixe | =text=             |
 | ~^^super^^~              | Exposant             | \({}^{\text{super}}\) |
 | ~,,sub,,~                | Indice               | \({}_{\text{sub}}\)   |
-| ~__garageline__~         | Soulignement         | _garageline_       |
+| ~__text__~               | Soulignement         | _text_             |
 | ~/-text-/~               | Barrage              | +text+             |
 |--------------------------+----------------------+--------------------|
 #+end_table
-
-#+NAME: lst:wiki-def-list
-#+CAPTION: Une liste de définitions en wikicréole (non-standard).
-#+BEGIN_SRC text
-  ;Ben Kenobi
-  :Jedi
-  ;Général Grievous
-  :Sith
-  ;Anakin Skywalker/Dark Vador
-  :C'est compliqué...
-#+END_SRC
 
 **** Extensions
 Comme expliqué dans la section [[sec:cdc-ohow]], le wikicréole Ocsigen inclut un
@@ -1127,8 +1210,8 @@ Il est enfin possible d'ajouter des classes {{{html}}} à des éléments
 individuellement. Par exemple, ~@@class="title"@@== Level 2 heading~
 génère ~<h2 class="title">Level 2 heading</h2>~.
 
-** GitHub Pages<<sec:anx-ghpages>>
-TODO
+** TODO GitHub Pages<<sec:anx-ghpages>>
+** TODO La programmation multi-tiers<<sec:anx-pmt>>
 
 * Footnotes
 
@@ -1140,9 +1223,10 @@ TODO
 qui convertit un ~int~ en ~string~ s'appelle ~string_of_int~. C'est en suivant cette convention que l'outil qui transforme du
 wikicréole en {{{html}}} s'appelle html_of_wiki.
 
-[fn:4] Cela est dû au fonctionnement de GitHub Pages. Pour plus d'information consulter l'annexe TODO sur GitHub Pages.
+[fn:4] Cela est dû au fonctionnement de GitHub Pages. Pour plus d'information consulter l'annexe [[sec:anx-ghpages]] sur GitHub Pages.
 
-[fn:5] GitHub Pages permet de définir des redirections sous forme de liens symboliques. Consulter l'annexe TODO pour plus d'informations.
+[fn:5] GitHub Pages permet de définir des redirections sous forme de liens symboliques. Consulter l'annexe [[sec:anx-ghpages]]
+pour plus d'informations.
 
 [fn:6] Toutes les extensions acceptent les attributs ~class~ et ~id~ correspondant aux attributs {{{html}}} de même nom.
 
@@ -1169,24 +1253,29 @@ utilisateur. L'{{{api}}} constitue le /sous-ensemble/ de l'implémentation du se
 ses utilisateurs et auquel ces derniers sont censés se limiter.
 
 [fn:14] Il y a également un mécanisme (désirable) intégré à GitHub Pages concernant ~index.html~. Consulter l'annexe
-TODO sur GitHub Pages pour plus de détail.
+[[sec:anx-ghpages]] sur GitHub Pages pour plus de détail.
 
 [fn:15] La notation ~foo*~ est tirée de la syntaxe shell (plus spécifiquement du /globbing/) afin de désigner tous les fichiers
 préfixés par ~foo~. Cette notation est utilisée ici pour dénoter toutes les extensions préfixées par ~a_api~, c'est-à-dire
 ~a_api~, ~a_api_code~ et ~a_api_type~. De la même manière ~a_*~ désigne toutes les extensions ayant fonction de lien implantées
 pour le projet Ocsigen.
 
-[fn:16] Le site web est dit /responsive/, c'est-à-dire qu'il s'adapte aux différentes résolutions d'appareils (laptop,
+[fn:16] C'est une conséquence de la /programmation multi-tiers/. Voir l'annexe [[sec:anx-pmt]] sur ce style de programmtion pour
+plus d'informations.
+
+[fn:17] Le site web est dit /responsive/, c'est-à-dire qu'il s'adapte aux différentes résolutions d'appareils (laptop,
 tablette, smartphone, etc.) et lorsque la largeur est trop faible, le menu de gauche "se déplace" dans le menu droite.
 Il n'y a en réalité aucun travail supplémentaire à fournir du côté du compilateur de wikicréole, c'est un travail
 de webdesign essentiellement en {{{css}}}.
 
-[fn:17] La syntaxe ~@@class="cls"@@~ permet d'ajouter une classe {{{html}}} à l'élément suivant. Voir l'annexe [[sec:anx-wikicreole]]
+[fn:18] La syntaxe ~@@class="cls"@@~ permet d'ajouter une classe {{{html}}} à l'élément suivant. Voir l'annexe [[sec:anx-wikicreole]]
 sur le wikicréole pour plus d'informations.
 
-[fn:18] Une légère adaptation de la convention de nommage ~A_of_B~ d'{{{ocaml}}} ("wiki_of_template" n'aurait pas eu beaucoup
+[fn:19] Une légère adaptation de la convention de nommage ~A_of_B~ d'{{{ocaml}}} ("wiki_of_template" n'aurait pas eu beaucoup
 de sens puisque les deux sont paramètres de l'outil).
 
-[fn:19] Afin de simplifier l'écriture de celle-ci la commande du listing [[lst:c1-c2-template]] utilise une fonctionnalité
+[fn:20] Afin de simplifier l'écriture de celle-ci la commande du listing [[lst:c1-c2-template]] utilise une fonctionnalité
 /non-{{{acr(Posix)}}}/ : les /process substitutions/. Il est néanmoins possible d'obtenir le même effet avec plusieurs
 commandes et l'utilisation de fichiers temporaires.
+
+[fn:21] Voir l'annexe [[sec:anx-ghpages]] pour plus d'informations.

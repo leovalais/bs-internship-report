@@ -111,6 +111,7 @@
 
 #+NAME: setup-latex-env
 #+BEGIN_EXPORT latex
+%% Already inside document after \maketitle and \tableofcontents
 \AtEndDocument{%
   \clearpage%
   \titleformat{\section}{\Large\bf}{\thesection}{1em}{}%
@@ -207,12 +208,12 @@ TODO
 * Introduction
 Ayant travaillé sur un projet en {{{cl}}} au {{{lrde}}}\(\)[fn:1], je souhaitais trouver
 un stage centré sur la programmation fonctionnelle, de préférence avec un langage
-statiquement typé. J'ai donc accepté le stage que la startup /BeSport/ m'a proposé
+statiquement typé. Mon choix s'est porté sur l'offre de stage de la startup /BeSport/
 essentiellement pour deux raisons :
 
 1. leur langage de prédilection est {{{ocaml}}}. C'est un langage fondamentalement
    fonctionnel, statiquement typé développé à l'{{{inria}}}\(\)[fn:2]. Cela correspond donc
-   parfaitement aux attentes que j'avais en termes de technologies.
+   parfaitement à mes attentes en termes de technologies.
 2. leurs applicatifs (/backend/, /frontend/, /importation de données/, etc.) sont
    entièrement développés en {{{ocaml}}}, nottament grâce au
    [[https://ocsigen.org][projet Ocsigen]], permettant le développement d'applications dites /multi-tiers/.
@@ -223,9 +224,13 @@ essentiellement pour deux raisons :
    - de partager les structures de données et fonctions entre le code client et
      le code serveur,
    - de vérifier statiquement les pages web générées pour être conforme à la
-     [[https://www.w3.org/standards/][norme W3C]], et
+     [[https://www.w3.org/standards/][norme W3C]],
    - toujours bénéficier des technologies {{{lang(JavaScript)}}} de pointe grâce
-     au compilateur [[http://ocsigen.org/js_of_ocaml/][Js_of_ocaml]].
+     au compilateur \sloppy[[http://ocsigen.org/js_of_ocaml/][Js_of_ocaml]], et
+   - pouvoir exporter l'application autant vers le web que le mobile (iOS et
+     Android).
+
+-----
 
 Le sujet proposé sur la convention est :
 #+BEGIN_QUOTE
@@ -251,6 +256,11 @@ Les remplacent un outil interne, lourd, monolithique et peu flexible, qu'il m'a 
 Ma mission consiste donc à développer cet outil, simple, ergonomique et flexible, générant les pages
 de documentation au format {{{html}}}, afin de les téléverser vers GitHub Pages.
 
+Une fois cela terminé, mon travail se portera davantage vers la platefome BeSport,
+nottament en ce qui concerne /l'importation de données/.
+
+-----
+
 Mes attentes par rapport à ce stage sont multiples.
 - Découvrir l'utilisation professionnelle de langages fonctionnels et de {{{ocaml}}}
   en particulier.
@@ -258,7 +268,7 @@ Mes attentes par rapport à ce stage sont multiples.
 - Une introduction à l'univers de la startup et les différentes méthodologies
   de travail telles qu'{{{acr(Agile)}}} et {{{acr(Scrum)}}} et les pratiques associées.
 - Une introduction aux tâches de /DevOps/, en particulier l'intégration continue
-  ({{{acr{Ci)}}}) en mileu professionnel.
+  ({{{acr(Ci)}}}) en mileu professionnel.
 - Une première expérience de la collaboration à plus grande échelle que les
   projets scolaires, avec des enjeux réels.
 
@@ -585,7 +595,7 @@ web et conforme à la [[https://www.w3.org/standards/][norme W3C]]. L'outil doit
 #+END_SRC
 #+end_listing
 
-**** TODO Les Liens
+**** Les Liens
 Le cas des liens est complexe, déjà car il existe deux manières d'écrire un lien
 en wikicréole étendu :
 - avec la syntaxe wikicréole standard, par exemple

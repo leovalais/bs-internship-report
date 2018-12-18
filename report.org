@@ -27,6 +27,7 @@
 #+LATEX_HEADER: \usepackage{codebox/codebox}
 # #+LATEX_HEADER: \usepackage[texcoord,grid,gridunit=mm,gridcolor=red!20,subgridcolor=gray!10]{eso-pic}
 
+#+LATEX_HEADER: \hypersetup{colorlinks=true,urlcolor=blue!50!white,linkcolor=black}
 #+LATEX_HEADER: \NoAutoSpaceBeforeFDP
 #+LATEX_HEADER: \usetikzlibrary{positioning,shapes}
 
@@ -157,6 +158,7 @@ comme on veut.
 #+MACRO: acr \textsc{$1}
 #+MACRO: lrde {{{acr(Lrde)}}}
 #+MACRO: inria {{{acr(Inria)}}}
+#+MACRO: irill {{{acr(Irill)}}}
 #+MACRO: api {{{acr(Api)}}}
 #+MACRO: lang $1
 #+MACRO: cl Common Lisp
@@ -215,7 +217,7 @@ essentiellement pour deux raisons :
    fonctionnel, statiquement typé développé à l'{{{inria}}}\(\)[fn:2]. Cela correspond donc
    parfaitement à mes attentes en termes de technologies.
 2. leurs applicatifs (/backend/, /frontend/, /importation de données/, etc.) sont
-   entièrement développés en {{{ocaml}}}, nottament grâce au
+   entièrement développés en {{{ocaml}}}, notamment grâce au
    [[https://ocsigen.org][projet Ocsigen]], permettant le développement d'applications dites /multi-tiers/.
    Habituellement développées en {{{lang(JavaScript)}}} (NodeJS pour le backend et
    ReactJS, Angular ou VueJS pour le frontend le plus souvent), l'utilisation de
@@ -250,14 +252,14 @@ Cependant, en arrivant, il m'a été confié une mission plus urgente que le dé
 de l'application BeSport :
 /la création d'un outil ergonomique de gestion de la documentation du projet Ocsigen pour GitHub Pages/.
 En effet, la documentation est écrite dans un format particulier ([[http://ocsigen-1.inria.fr/ocsimore/dev/manual/wiki][le wikicréole]]) muni d'extensions
-propriétaires, qu'il est nécéssaire de compiler vers de l'{{{html}}} à chaque modification de celle-ci.
+propriétaires, qu'il est nécessaire de compiler vers de l'{{{html}}} à chaque modification de celle-ci.
 C'était le but de Ocsimore et Ocsiforge, outils du projet Ocsigen, aujourd'hui dépréciés.
 Les remplacent un outil interne, lourd, monolithique et peu flexible, qu'il m'a été demandé de remplacer.
 Ma mission consiste donc à développer cet outil, simple, ergonomique et flexible, générant les pages
-de documentation au format {{{html}}}, afin de les téléverser vers GitHub Pages.
+de documentation au format {{{html}}}, afin de les télé-verser vers GitHub Pages.
 
-Une fois cela terminé, mon travail se portera davantage vers la platefome BeSport,
-nottament en ce qui concerne /l'importation de données/.
+Une fois cela terminé, mon travail se portera davantage vers la plate-forme BeSport,
+notamment en ce qui concerne /l'importation de données/.
 
 -----
 
@@ -268,25 +270,122 @@ Mes attentes par rapport à ce stage sont multiples.
 - Une introduction à l'univers de la startup et les différentes méthodologies
   de travail telles qu'{{{acr(Agile)}}} et {{{acr(Scrum)}}} et les pratiques associées.
 - Une introduction aux tâches de /DevOps/, en particulier l'intégration continue
-  ({{{acr(Ci)}}}) en mileu professionnel.
+  ({{{acr(Ci)}}}) en milieu professionnel.
 - Une première expérience de la collaboration à plus grande échelle que les
   projets scolaires, avec des enjeux réels.
 
-* TODO Présentation de BeSport
-** Le secteur d'activité
+* Présentation de BeSport
 ** L'entreprise
-*** Présentation
-*** Organigramme
+BeSport est une /startup/ développant un /réseau social/ du même nom.
+Ce dernier, disponible sur toutes les plate-formes majeures, c'est-à-dire
+/le web, iOS et Android/, est destinée, comme son nom l'indique, au milieu
+du sport.
+
+Travaillent chez BeSport les personnes listées ci-dessous, dans trois "équipes" distinctes :
+une équipe /technique/, chargée du développement de la plate-forme et une équipe /sport/
+qui est chargée de fournir du contenu sportif ainsi que de garantir que le produit soit
+au plus proche des besoins du sport possible. Il y a aussi naturellement une équipe
+administrative.
+
+S'ajoutent à cela quatre stagiaires, moi compris.
+
+*** Équipe technique
+- Vincent Balat :: {{{acr(Cto)}}}
+- Jérôme Vouillon :: Ingénieur de recherche OCaml et Ocsigen
+- Jan Rochel :: Ingénieur de recherche
+- Rémy El Sibaïe :: Développeur
+- Idir Lankri :: Développeur
+- Baptsite Strazzula :: Développeur
+- Maya El Sibai :: {{{acr(Ui)}}}/{{{acr(Ux)}}} designer
+- Papa Mor Faye :: Data scientist
+- Kolia Iakovlev :: Data scientist/importation de données
+
+*** Équipe administrative
+- Phillipe Robert :: {{{acr(Ceo)}}}
+- Léa Hubsch :: Ressources humaines & stratégie
+
+*** Équipe sportive
+- Benoit Guyot :: Responsable sportif
+- Jean Marc Gillet :: Journaliste sportif
+- Léopold Rucher :: Journaliste sportif
+- Hugo Bruchet :: Journaliste sportif
+- François Trillo :: Journaliste sportif
+- Raphaelle Steg :: Journaliste sportif
+
 ** Le service
 *** Le réseau social BeSport
+Le réseau social BeSport est né du constat que le milieu du sport avait encore
+peu bénéficié de cette "transformation numérique" censée toucher toutes les
+activités. En effet, le sport reste très hiérarchisé et presque exclusivement
+relayé par les "médias traditionnels" tels que la télévision et la radio.
+
+Le projet BeSport, ambitieux, vise donc à mettre à disposition une plate-forme
+qui mettrait tout cela "à plat". Elle est conçue pour un panel d'utilisateurs
+très large, allant des /professionnels/ du sport aux /pratiquants/ (athlètes) en
+passant par les simples /"fans"/ de sport.
+
+BeSport veut aussi se distinguer sur deux dimensions : la /"largeur"/ et la
+/"profondeur"/. La largeur est le panel de sport supportés et la profondeur
+est l'écart de niveau supporté pour un sport donné. BeSport veut donc supporter
+le maximum de sports possible --- c'est-à-dire pas juste le football et le rugby,
+mais aussi des sports moins populaires (ou moins médiatisés) tels que le surf
+ou le hockey sur glace. De plus, BeSport veut avoir le plus de profondeur
+possible dans chaque sport : chacun d'eux doit être représenté, que ce
+soit au niveau professionnel ou olympique qu'au niveau amateur ou des clubs
+locaux.
+
+BeSport a donc pour objectif de toucher le monde du sport au sens large :
+*tous les sports, à tous niveaux*. Pour cela, BeSport doit d'abord
+être techniquement disponible sur toutes les plate-formes (web et mobile) :
+il a donc été choisi que le réseau social serait développé avec l'aide
+du projet Ocsigen.
+
 *** Le projet Ocsigen
+Le projet Ocsigen est un projet /open-source/ développé à l'{{{irill}}}\(\)[fn:3], en {{{ocaml}}},
+servant à développer des applications dites /multi-tiers/ dans ce même
+langage. Ce projet est composé de différents sous-projets indépendants mais permettant,
+lorsqu'utilisés conjointement, de développer /l'intégralité d'une application web en {{{ocaml}}}/,
+/backend/ et /frontend/ compris. Parmi ceux-ci l'on peut citer les plus populaires :
+- Js_of_ocaml :: un compilateur de /bytecode/ {{{ocaml}}} \rightarrow {{{lang(JavaScript)}}},
+- Eliom :: /framework/ pour la programmation multi-tiers,
+- Tyxml :: bibliothèque permettant de construire des pages {{{html}}} en {{{ocaml}}}.
+
+-----
+
+Il y a de nombreux avantages à utiliser un langage comme {{{ocaml}}} pour développer
+des applications web complexes, par exemple :
+- c'est un langage fonctionnel et rigoureux moins sensible aux erreurs une fois
+  déployé,
+- son système de types fort et poussé permet (à l'aide de Tyxml), de ne générer que
+  des pages {{{html}}} conformes à la [[https://www.w3.org/standards/][norme W3C]],
+- c'est un langage pensé pour être fonctionnel en son coeur, paradigme qui ne se rajoute
+  qu'aujourd'hui dans le milieu du développement web (comme une "sur-couche" sur des
+  langages pas vraiment pensé pour cela au départ), ou encore,
+- avoir /un seul/ programme, /cohérent/ puis-qu'écrit dans un seul et même langage, au lieu
+  d'un programme client plus un programme serveur plus un middleware dans le cloud plus etc.
+  tous écrits dans des langages différents.
+
+Consulter l'annexe [[sec:anx-pmt]] pour plus d'informations sur le projet Ocsigen et sur
+la programmation multi-tiers, avec des exemples de code.
+
 ** Le positionnement du stage dans les travaux de l'entreprise
+C'est d'abord dans le cadre d'une /contribution au projet Ocsigen/ que mon
+stage se porte. En effet, BeSport utilisant un projet de recherche open-source
+comme /stack/, l'entreprise dispose d'un financement recherche afin de continuer
+à maintenir et développer le projet Ocsigen.
+
+Ma première mission est donc de reprendre et transformer un outil interne de
+gestion de la documentation du projet afin de le rendre plus ergonomique,
+flexible et plus complet que le précédent. L'objectif final étant de l'inclure
+dans la liste des projets "publics" du projet Ocsigen comme outil
+générique de gestion de documentation.
+
 * one_html_of_wiki
 ** But général<<sec:ohow-but-grl>>
 *** Le wikicréole
 Le projet Ocsigen est vieux de plus de dix ans. Les formats de documentation
 actuellement répandus, tels que le /Markdown/ ou le /reStructured Text/, n'existaient
-alors pas ou commencaient à émerger. Le seul format alors en vigueur était le format
+alors pas ou commençaient à émerger. Le seul format alors en vigueur était le format
 /wiki/ de Wikipédia, et toutes ses déclinaisons. C'est l'une d'entre elles qui
 a été choisie pour la documentation du projet Ocsigen : le /wikicréole/.
 Le wikicréole, qui a l'avantage d'être arrivé plus tard que ses concurrents,
@@ -298,12 +397,12 @@ commettre, tout en conservant l'esprit et la syntaxe générale de ceux-ci.
 #+INCLUDE: "example.wiki" src text
 
 Le listing [[lst:example-wiki]] montre un texte formatté en wikicréole. C'est donc
-un format léger et relativement pratique à utiliser, mais il est nécéssaire de le
+un format léger et relativement pratique à utiliser, mais il est nécessaire de le
 convertir en {{{html}}} pour pouvoir le publier (sur GitHub Pages dans le cas de BeSport).
 
 *** Ocsimore et Ocsiforge
 C'était le but des outils Ocsimore et Ocsiforge, autrefois partie du projet
-Ocsigen, aujourd'hui dépéciés et plus maintenus.
+Ocsigen, aujourd'hui déprécies et plus maintenus.
 
 Leur rôle était de fournir une infrastructure permettant de gérer la documentation
 d'un ensemble de projets. Ils servaient, entres autres, à:
@@ -334,7 +433,7 @@ abandonnées. Mais parmi celles-ci,
 pour garantir la disponibilité de la documentation aux utilisateurs du projet Ocsigen.
 
 *** html_of_wiki
-C'est dans cette optique qu'est né le projet html_of_wiki[fn:3] (abbrégé =how=).
+C'est dans cette optique qu'est né le projet html_of_wiki[fn:4] (abrégé =how=).
 Cet outil reprend une partie du code d'Ocsimore, l'analyseur syntaxique (/lexer/)
 et l'analyseur grammatical (/parser/), mais est /complètement dédié au projet Ocsigen/.
 C'est donc un outil /interne/. Son objectif initial devait être simplement de convertir
@@ -362,7 +461,7 @@ Plusieurs inconvénients majeurs se distinguent déjà.
   (plusieurs gigaoctets).
 - Il faut penser manuellement à ajouter les nouvelles versions de chaque projet à
   ce dépôt.
-- La nécéssité de =ocsigen.org-data= induit une forte désorganisation au sein
+- La nécessité de =ocsigen.org-data= induit une forte désorganisation au sein
   des projets :
   - le code d'un projet $X$ se trouve sur ~master~ dans le dépôt $X$,
   - les wikis de $X$ se trouvent se trouvent dans le dossier $X$ de =ocsigen.org-data=, et
@@ -371,11 +470,11 @@ Plusieurs inconvénients majeurs se distinguent déjà.
 
 D'autre part, =how= souffre également des problèmes suivants:
 - La page d'accueil \sloppy[[https://ocsigen.github.io]] doit être traitée comme un cas
-  particulier[fn:4].
+  particulier[fn:5].
 - Les liens générés sont des liens /absolus/, ce qui proscrit toute modification
   de l'architecture des projets ou du site au risque de casser la plupart des liens.
 - Puisque la gestion des versions est manuelle, la gestion des redirections l'est
-  aussi[fn:5].
+  aussi[fn:6].
   #+begin_ex
   La page d'accueil du projet Eliom doit être ~eliom/2.8/intro.html~,
   en supposant que =2.8= est la dernière version en date. Il faut alors créer le
@@ -387,14 +486,14 @@ D'autre part, =how= souffre également des problèmes suivants:
 - Un certain nombre d'inconvénients mineurs (par exemple, devoir mettre les wikis
   ayant le rôle de manuel d'utilisation dans un dossier ~src/~).
 
-La figure [[fig:how-arch]] illustre et résume la (lourde) architecture nécéssaire pour faire
+La figure [[fig:how-arch]] illustre et résume la (lourde) architecture nécessaire pour faire
 fonctionner html_of_wiki.
 
 =how= est donc un outil qui fonctionne, mais lourd, monolithique, peu flexible
 et peu ergonomique. La mission de créer un outil pour le remplacer m'a donc été confiée.
 
 #+NAME: fig:how-arch
-#+CAPTION: Architecture nécéssaire pour faire fonctionner html_of_wiki.
+#+CAPTION: Architecture nécessaire pour faire fonctionner html_of_wiki.
 #+begin_figure
 #+INCLUDE: "how-arch.tex" export latex
 #+end_figure
@@ -403,15 +502,15 @@ et peu ergonomique. La mission de créer un outil pour le remplacer m'a donc ét
 L'idée était donc de simplifier drastiquement =how= mais en le privant du minimum
 de fonctionnalités possible. Ce nouvel outil devait être capable de compiler les
 wikis /un par un/ et *sans examen de dépendances* pour la construction des liens.
-C'est pour cela que cet outil a été nommé one_html_of_wiki (abbrégé =ohow=).
+C'est pour cela que cet outil a été nommé one_html_of_wiki (abrégé =ohow=).
 Cet outil se devait d'être /simple/ et /composable/ (plus en accord avec la
-philosophie Unix). Cependant, cela implique la nécéssité d'un
+philosophie Unix). Cependant, cela implique la nécessité d'un
 outil supplémentaire, capable d'utiliser =ohow= pour générer la documentation
-/d'une version entière/ d'un projet donné : doc_of_project (abbrégé =dop=).
+/d'une version entière/ d'un projet donné : doc_of_project (abrégé =dop=).
 Ces deux outils ont donc principalement pour but de :
 - remplacer définitivement =how=,
 - avoir la possibilité de placer la documentation des projets ailleurs que
-  dans ~ocsigen.org-data~ et de s'en débarasser,
+  dans ~ocsigen.org-data~ et de s'en débarrasser,
 - garder la syntaxe wikicréole extensible, et surtout,
 - /reproduire le site existant au minimum à l'identique/ (au mieux avec
   quelques améliorations).
@@ -443,12 +542,12 @@ objectifs de cette mission sont les suivants.
   le compilateur wikicréole \rightarrow {{{html}}} qui opère fichier par fichier et
   doc_of_project, qui opère version de projet par version de projet,
 - conserver le même format de wikicréole et les même extensions (100% rétrocompatible avec =how=),
-- être capable, à l'aide de ces outils, de regénérer le site [[https://ocsigen.org]]
+- être capable, à l'aide de ces outils, de régénérer le site [[https://ocsigen.org]]
   à l'identique,
 - l'améliorer et régler ses différents problèmes techniques (barre de recherche,
   design, etc.),
 - trouver une solution pour se passer du dépôt ~ocsigen.org-data~, et,
-- éventuellement rendre =ohow= suffisament indépendant de l'infrastructure
+- éventuellement rendre =ohow= suffisamment indépendant de l'infrastructure
   du projet Ocsigen pour pouvoir le diffuser et qu'il puisse être utilisé
   sur d'autres projets.
 
@@ -465,7 +564,7 @@ dans l'annexe [[sec:anx-wikicreole]].
 **** Les extensions
 La documentation du projet Ocsigen s'appuie fortement sur une construction syntaxique
 particulière : /les extensions/. Ce sont des constructions non-standard du wikicréole
-développées afin d'augmenter les capacités du langage en permettant l'éxecution de
+développées afin d'augmenter les capacités du langage en permettant l'exécution de
 code {{{ocaml}}} /pendant la compilation/ du fichier.
 
 Concrètement, les extensions ont la syntaxe suivante:
@@ -490,15 +589,15 @@ dans la page web produite.
 
 Le listing [[lst:ext-ex]] illustre comment ajouter une extension au compilateur décrit dans
 le paragraphe suivant et permet de comprendre aisément en quoi ce système est très
-puissant de par sa capacité à excécuter du code arbitrairement complexe au coeur du
+puissant de par sa capacité à exécuter du code arbitrairement complexe au coeur du
 processus de compilation.
 
 #+NAME: lst:ext-ex
-#+CAPTION: Code {{{ocaml}}} nécéssaire pour ajouter l'extension ~colored~.
+#+CAPTION: Code {{{ocaml}}} nécessaire pour ajouter l'extension ~colored~.
 #+INCLUDE: "ext-ex.ml" src ocaml
 
-Le tableau [[tab:ext-to-support]] liste et décrit les extensions (et leur attributs[fn:6])
-définies pour le projet Ocsigen que =ohow= doit pourvoir supporter[fn:7].
+Le tableau [[tab:ext-to-support]] liste et décrit les extensions (et leur attributs[fn:7])
+définies pour le projet Ocsigen que =ohow= doit pourvoir supporter[fn:8].
 
 #+NAME: tab:ext-to-support
 #+CAPTION: Extensions Ocsigen que =ohow= doit impérativement supporter.
@@ -507,7 +606,7 @@ définies pour le projet Ocsigen que =ohow= doit pourvoir supporter[fn:7].
 |------------------------+------------------------------------+---------------------------------------------------|
 | Nom                    | Attributs                          | Courte description                                |
 |------------------------+------------------------------------+---------------------------------------------------|
-| ~a_api_code~           | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API (implémentation).       |
+| ~a_api_code~           | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API (implantation).       |
 | ~a_api_type~           | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API (déclarations).         |
 | ~a_api~                | ~project~, ~subproject~, ~version~ | Insère un lien vers l'API du projet donné.        |
 | ~a_file~               | ~src~                              | Insère un lien vers un fichier quelconque.        |
@@ -535,19 +634,19 @@ définies pour le projet Ocsigen que =ohow= doit pourvoir supporter[fn:7].
 **** Le compilateur wikicréole \rightarrow {{{html}}}
 Comme expliqué dans la section [[sec:ohow-but-grl]], =ohow= doit être construit par dessus
 =how=, lui-même écrit à partir de Ocsimore et Ocsiforge. Ces derniers avaient
-implémenté un compilateur wikicréole \rightarrow {{{html}}} écrit en {{{ocaml}}} afin de
+implanté un compilateur wikicréole \rightarrow {{{html}}} écrit en {{{ocaml}}} afin de
 pouvoir remplir leur fonction. Ce compilateur a été repris par =how= et
 /doit également être réutilisé par =ohow=/.
 
-Cependant celui-ci doit d'être /modifié/, nottament ce qui concerne la génération
+Cependant celui-ci doit d'être /modifié/, notament ce qui concerne la génération
 de liens entre les pages web. En effet, les liens générés sont des /liens absolus/,
 trop rigides (il est impossible de tester localement le site web généré puisque les
 liens pointent vers des URLs comme [[https://ocsigen.org/project/page]]). Il faut donc
 modifier les procédures concernées afin de générer les /liens relatifs/, plus flexibles,
-mais plus contraignants à implémenter.
+mais plus contraignants à implanter.
 
 *** L'outil principal : one_html_of_wiki<<sec:cdc-ohow>>
-La fonction de one_html_of_wiki est /simple/ et /unique/[fn:8]:
+La fonction de one_html_of_wiki est /simple/ et /unique/[fn:9]:
 #+BEGIN_QUOTE
 Pouvoir compiler les fichiers wikicréole *individuellement* et *sans examen de dépendances* (compilation *isolée*).
 #+END_QUOTE
@@ -563,8 +662,8 @@ web et conforme à la [[https://www.w3.org/standards/][norme W3C]]. L'outil doit
 - Le fichier wikicréole à compiler ne doit pas être modifié.
 - Les pages {{{html}}} produites doivent être complètes (avec un en-tête ~<head>~ correct).
 - Il doit être possible de ne pas générer cet en-tête avec l'option ~--headless~.
-- Les pages {{{html}}} produites doivent etre conformes à la [[https://www.w3.org/standards/][norme W3C]].
-- Les liens générés doivent être _tous_[fn:9] relatifs.
+- Les pages {{{html}}} produites doivent être conformes à la [[https://www.w3.org/standards/][norme W3C]].
+- Les liens générés doivent être _tous_[fn:10] relatifs.
 - Il ne doit pas y avoir d'examen de dépendances.
 - Il doit être possible de tester les pages localement avec des liens redirigeant
   vers des adresses existantes (option ~--local~).
@@ -575,7 +674,7 @@ web et conforme à la [[https://www.w3.org/standards/][norme W3C]]. L'outil doit
 
 **** Interface à respecter
 - Il doit y avoir une option ~--print~ pour afficher le code {{{html}}} résultant
-  dans la console (sortie standard) afin de pouvoir être composé[fn:10].
+  dans la console (sortie standard) afin de pouvoir être composé[fn:11].
 - Il doit y avoir une option ~--output FILE~ pour sélectionner le nom du fichier
   {{{html}}} de sortie. En conséquence, les deux commandes du listing [[lst:ohow-equiv]]
   doivent produire /exactement/ le même résultat.
@@ -599,7 +698,7 @@ web et conforme à la [[https://www.w3.org/standards/][norme W3C]]. L'outil doit
 Le cas des liens est complexe, déjà car il existe deux manières d'écrire un lien
 en wikicréole étendu :
 - avec la syntaxe wikicréole standard, par exemple
-  {{{wikilink(wiki(name):page)}}} ou encore {{{wikilink(site:address)}}}\(\)[fn:11], et,
+  {{{wikilink(wiki(name):page)}}} ou encore {{{wikilink(site:address)}}}\(\)[fn:12], et,
 - avec les extensions Ocsigen ~a_manual~, ~a_api~, ~a_img~, etc.
 
 Le problème est que ces deux types de liens sont traités dans deux parties
@@ -655,12 +754,12 @@ de la bibliothèque Tyxml (appartennant au projet Ocsigen).
 #+end_ex
 
 En revanche, pour les extensions, le fonctionnement est différent et un exemple
-d'implémentation d'une extension simple est donné par le listing [[lst:ext-ex]].
+d'implantation d'une extension simple est donné par le listing [[lst:ext-ex]].
 Les extensions qui ont fonction de lien dans la documentation du projet Ocsigen
 sont les suivantes :
-- ~a_manual~ qui décrit un lien vers un chapitre[fn:12] du manuel,
+- ~a_manual~ qui décrit un lien vers un chapitre[fn:13] du manuel,
 - ~a_api~, ~a_api_type~, ~a_api_code~ qui décrivent un lien vers la page de
-  documentation d'un symbole d'une {{{api}}}\(\)[fn:13],
+  documentation d'un symbole d'une {{{api}}}\(\)[fn:14],
 - ~a_img~ qui insère une image (balise {{{html}}} ~<img/>~) à l'endroit donné, et,
 - ~a_file~ qui décrit un lien vers un fichier quelconque à télécharger, stocké au
   même endroit que le site généré (GitHub Pages dans le cas du projet Ocsigen).
@@ -729,7 +828,7 @@ des URLs plus simple à maintenir.
   ~latest~ qui pointe vers le dossier de la version considérée comme "la
   plus récente".
 - À la racine de chaque version doit se trouver un lien symbolique nommé
-  ~index.html~[fn:14] qui pointe vers la page d'introduction ou de présentation
+  ~index.html~[fn:15] qui pointe vers la page d'introduction ou de présentation
   du projet (pour la version en question).
 - Dans le versions directory doit également se trouver un lien symbolique
   nommé aussi ~index.html~ qui pointe vers la page d'accueil du projet par
@@ -742,7 +841,7 @@ des URLs plus simple à maintenir.
   en ligne de commande suivantes :
   - ~--root~ désigne le /root directory/,
   - ~--manual~ désigne le dossier contenant les wikis du manuel (~a_manual~),
-  - ~--api~ désigne le dossier contenant les wikis de l'{{{api}}} (~a_api*~[fn:15]),
+  - ~--api~ désigne le dossier contenant les wikis de l'{{{api}}} (~a_api*~[fn:16]),
   - ~--images~ désigne le dossier contenant les images (~a_img~), et,
   - ~--assets~ désigne le dossier contenant les fichiers (~a_file~).
   #+begin_note
@@ -831,7 +930,7 @@ Cette extension n'accepte pas d'attributs ni de contenu.
 
 **** L'extension {{{wikiext(client-server-switch)}}}
 Certaines parties de l'{{{api}}} (modules, types, etc.) de certains projets extistent
-en deux versions : une version /client/ et une version /serveur/[fn:16]. C'est par exemple
+en deux versions : une version /client/ et une version /serveur/[fn:17]. C'est par exemple
 le cas pour le module ~Eliom_lib~ du projet Eliom.
 
 #+LaTeX: \begin{ffbox}[note]{Résumé}
@@ -875,7 +974,7 @@ compilé, son contenu est "copié-collé à la place" de cette extension
 dans le template, et le tout est ensuite compilé vers de l'{{{html}}}.
 
 Cela a pour effet de "rajouter" du code wikicréole avant et après le
-contenu de chaque wiki, nottament pour des questions de mise en page.
+contenu de chaque wiki, notament pour des questions de mise en page.
 C'est aussi dans le template que l'on spécifie l'agencement de la page ---
 la position relative du menu par rapport au contenu.
 
@@ -909,7 +1008,7 @@ de la page :
 - l'en-tête de la page (balise {{{html}}} ~<header/>~) avec le logo et les liens
   vers les principaux projets, identique pour toutes les pages du site,
 - le menu latéral rétractable (extension {{{wikiext(drawer)}}}), aussi identique
-  pour toutes les pages du site[fn:17], et enfin,
+  pour toutes les pages du site[fn:18], et enfin,
 - la partie centrale, où le contenu du wiki consulté est affiché.
 
 À l'exception du /contenu/ de la partie centrale, tout le reste est quasiment
@@ -919,7 +1018,7 @@ accompli en ajoutant une classe {{{css}}} --- ~mainmenu-current~ et
 ~drawermainmenu-current~ --- au lien vers le projet courant dans ces menus.
 
 #+begin_ex
-Dans le fichier ~template.wiki~ du projet Eliom, l'on a[fn:18] :
+Dans le fichier ~template.wiki~ du projet Eliom, l'on a[fn:19] :
 #+BEGIN_SRC text
 *@@class="mainmenu-current"@@[[wiki("eliom"):|Eliom]]
 *[[wiki("js_of_ocaml"):|Js_of_ocaml]]
@@ -984,7 +1083,7 @@ spécial : le /template/ (ou /patron/). Ces fichiers sont différents dans le se
 contiennent une (ou plusieurs) occurence(s) de cette extension.
 
 Cependant, toujours afin de rester dans l'idée que chaque programme ne doit faire
-qu'une seule chose[fn:8], il a été décidé que la fonction d'insetion de /contenu/
+qu'une seule chose[fn:9], il a été décidé que la fonction d'insetion de /contenu/
 dans un template doit être le but d'un outil distinct. En effet, =ohow= est un
 /compilateur wikicréole \rightarrow {{{html}}}/ : celui-ci prend donc en entrée "du code
 wikicréole" et sort "du code {{{html}}} équivalent", alors que la fonction
@@ -995,7 +1094,7 @@ premier)".
 Ce sont donc deux fonctionalités /complètement orthogonales/ (c'est-à-dire
 que l'on peut très bien utiliser l'une sans l'autre) pour deux outils
 /bien distincts/. L'outil donc chargé /d'inline/ un wiki dans un template
-est donc /wiki_in_template/[fn:19], abbrégé =wit=.
+est donc /wiki_in_template/[fn:20], abrégé =wit=.
 
 **** Objectifs
 - =wit= doit être un outil en ligne de commande Unix.
@@ -1031,7 +1130,7 @@ peut éventuellement rediriger facilemnt vers un fichier de sortie).
 C'est avec la même simplicité que l'on peut gérer le cas de l'insertion de
 /deux contenus/ ~c1.wiki~ et ~c2.wiki~ dans /un seul/ template ~template.wiki~
 (contenant au moins deux balises {{{wikiext(content)}}}), comme l'illustre le
-listing [[lst:c1-c2-template]][fn:20].
+listing [[lst:c1-c2-template]][fn:21].
 
 #+NAME: lst:c1-c2-template
 #+CAPTION: Commande d'insertion de deux contenus dans un seul template.
@@ -1091,7 +1190,7 @@ problèmes distincts :
 **** Simplification
 - fusion de tous les fichiers ~template.wiki~ (voir la section [[sec:cdc-ohow]]),
 - suppression du dépôt =ocsigen.org-data= (voir la section [[sec:ohow-but-grl]]), et,
-- gestion des liens symboliques faisant office de redirections[fn:21] automatique.
+- gestion des liens symboliques faisant office de redirections[fn:22] automatique.
 
 **** Automatisation
 Il m'a également été demandé de mettre en place un /job d'intégration continue/
@@ -1108,7 +1207,7 @@ avec {{{travis}}}. Ce job doit être composé des /phases/ suivantes :
 - /Deploy/ :: enfin, si les tests post-compilation sont tous passés, il faut
               déployer le site généré sur GitHub Pages, c'est-à-dire en poussant
               (~git push~) les fichiers {{{html}}} sur la branche ~gh-pages~ du
-              projet[fn:21].
+              projet[fn:22].
 
 * Annexes
 ** Le Wikicréole<<sec:anx-wikicreole>>
@@ -1135,7 +1234,7 @@ sont préfixés par un seul caractère ~=~. Un tel titre s'écrit alors
 *** Additions du projet Ocsigen
 **** Liens
 Le tableau [[tab:links]] liste les syntaxes de liens ajoutées et le tableau
-[[tab:abbr]] les abbréviations disponibles.
+[[tab:abbr]] les abréviations disponibles.
 
 #+begin_note
 Une ancienne syntaxe dont BeSport souhaitait se débarasser permettait d'identifier
@@ -1158,10 +1257,10 @@ il a été décidé qu'elle ne serait plus maintenue.
 #+end_table
 
 #+NAME: tab:abbr
-#+CAPTION: Syntaxes d'abbréviations de liens ajoutées par le projet Ocsigen.
+#+CAPTION: Syntaxes d'abréviations de liens ajoutées par le projet Ocsigen.
 #+begin_table
 |---------------------------+------------------------------+-----------------------------------------------|
-| Abbréviation              | Équivalence                  | Description                                   |
+| Abréviation              | Équivalence                  | Description                                   |
 |---------------------------+------------------------------+-----------------------------------------------|
 | {{{wikilink()}}}          | {{{wikilink(href:.)}}}       | Page courante.                                |
 | {{{wikilink(\#anchor)}}}  | {{{wikilink(href:\#anchor)}}} | Page courante (avec ancre).                   |
@@ -1229,63 +1328,67 @@ génère ~<h2 class="title">Level 2 heading</h2>~.
 
 [fn:2] Institut National de Recherche en Informatique et en Automatique
 
-[fn:3] Il existe en {{{ocaml}}} une convention de nommage pour les fonctions de conversion. Par exemple, la fonction standard
+[fn:3] L'Initiative pour la Recherche et l'Innovation sur le Logiciel Libre. C'est un laboratoire de recherche français.
+Ce centre a été créé en septembre 2010 par l'{{{inria}}} avec l'Université Pierre-et-Marie-Curie et l'Université Paris
+VII - Diderot.
+
+[fn:4] Il existe en {{{ocaml}}} une convention de nommage pour les fonctions de conversion. Par exemple, la fonction standard
 qui convertit un ~int~ en ~string~ s'appelle ~string_of_int~. C'est en suivant cette convention que l'outil qui transforme du
 wikicréole en {{{html}}} s'appelle html_of_wiki.
 
-[fn:4] Cela est dû au fonctionnement de GitHub Pages. Pour plus d'information consulter l'annexe [[sec:anx-ghpages]] sur GitHub Pages.
+[fn:5] Cela est dû au fonctionnement de GitHub Pages. Pour plus d'information consulter l'annexe [[sec:anx-ghpages]] sur GitHub Pages.
 
-[fn:5] GitHub Pages permet de définir des redirections sous forme de liens symboliques. Consulter l'annexe [[sec:anx-ghpages]]
+[fn:6] GitHub Pages permet de définir des redirections sous forme de liens symboliques. Consulter l'annexe [[sec:anx-ghpages]]
 pour plus d'informations.
 
-[fn:6] Toutes les extensions acceptent les attributs ~class~ et ~id~ correspondant aux attributs {{{html}}} de même nom.
+[fn:7] Toutes les extensions acceptent les attributs ~class~ et ~id~ correspondant aux attributs {{{html}}} de même nom.
 
-[fn:7] Les descriptions données sont simplement indicatives. Les extensions complexes seront décrites avec plus de précision
+[fn:8] Les descriptions données sont simplement indicatives. Les extensions complexes seront décrites avec plus de précision
 lors de l'explication des problèmes techniques qu'elles causent.
 
-[fn:8] Cela permet de rendre le programme plus simple à maintenir mais aussi plus en accord avec la philosophie
+[fn:9] Cela permet de rendre le programme plus simple à maintenir mais aussi plus en accord avec la philosophie
 Unix. "Make each program do one thing well."
 
-[fn:9] Ceci ne concerne que les liens entre les pages du projet. Les liens vers d'autres sites web sont nécéssairement absolus.
+[fn:10] Ceci ne concerne que les liens entre les pages du projet. Les liens vers d'autres sites web sont nécéssairement absolus.
 
-[fn:10] Une utilisation idomatique de la ligne de commande des systèmes Unix est de composer différents programmes
+[fn:11] Une utilisation idomatique de la ligne de commande des systèmes Unix est de composer différents programmes
 simples pour réaliser une action complexe. "Expect the output of every program to become the input to another, as yet unknown, program."
 
-[fn:11] Il existe d'autres syntaxes standard pour les liens, ainsi que de nombreuses abbréviations. Pour plus
+[fn:12] Il existe d'autres syntaxes standard pour les liens, ainsi que de nombreuses abréviations. Pour plus
 d'informations, consulter l'annexe [[sec:anx-wikicreole]] sur le wikicréole.
 
-[fn:12] L'on parle de "chapitre" pour désigner les pages web du manuel et de "page" pour désigner les pages web de(s) {{{api}}}(s),
+[fn:13] L'on parle de "chapitre" pour désigner les pages web du manuel et de "page" pour désigner les pages web de(s) {{{api}}}(s),
 mais les deux termes désignent bien tous deux des pages {{{html}}} classique.
 
-[fn:13] /Application Programming Interface/ ou "interface de programmation applicative", désigne l'ensemble
+[fn:14] /Application Programming Interface/ ou "interface de programmation applicative", désigne l'ensemble
 des /fonctionnalités/ (fonctions, classes, types, etc.) que le concepteur d'un service fournit à son
-utilisateur. L'{{{api}}} constitue le /sous-ensemble/ de l'implémentation du service qui est /ouvert/ à
+utilisateur. L'{{{api}}} constitue le /sous-ensemble/ de l'implantation du service qui est /ouvert/ à
 ses utilisateurs et auquel ces derniers sont censés se limiter.
 
-[fn:14] Il y a également un mécanisme (désirable) intégré à GitHub Pages concernant ~index.html~. Consulter l'annexe
+[fn:15] Il y a également un mécanisme (désirable) intégré à GitHub Pages concernant ~index.html~. Consulter l'annexe
 [[sec:anx-ghpages]] sur GitHub Pages pour plus de détail.
 
-[fn:15] La notation ~foo*~ est tirée de la syntaxe shell (plus spécifiquement du /globbing/) afin de désigner tous les fichiers
+[fn:16] La notation ~foo*~ est tirée de la syntaxe shell (plus spécifiquement du /globbing/) afin de désigner tous les fichiers
 préfixés par ~foo~. Cette notation est utilisée ici pour dénoter toutes les extensions préfixées par ~a_api~, c'est-à-dire
 ~a_api~, ~a_api_code~ et ~a_api_type~. De la même manière ~a_*~ désigne toutes les extensions ayant fonction de lien implantées
 pour le projet Ocsigen.
 
-[fn:16] C'est une conséquence de la /programmation multi-tiers/. Voir l'annexe [[sec:anx-pmt]] sur ce style de programmtion pour
+[fn:17] C'est une conséquence de la /programmation multi-tiers/. Voir l'annexe [[sec:anx-pmt]] sur ce style de programmtion pour
 plus d'informations.
 
-[fn:17] Le site web est dit /responsive/, c'est-à-dire qu'il s'adapte aux différentes résolutions d'appareils (laptop,
+[fn:18] Le site web est dit /responsive/, c'est-à-dire qu'il s'adapte aux différentes résolutions d'appareils (laptop,
 tablette, smartphone, etc.) et lorsque la largeur est trop faible, le menu de gauche "se déplace" dans le menu droite.
 Il n'y a en réalité aucun travail supplémentaire à fournir du côté du compilateur de wikicréole, c'est un travail
 de webdesign essentiellement en {{{css}}}.
 
-[fn:18] La syntaxe ~@@class="cls"@@~ permet d'ajouter une classe {{{html}}} à l'élément suivant. Voir l'annexe [[sec:anx-wikicreole]]
+[fn:19] La syntaxe ~@@class="cls"@@~ permet d'ajouter une classe {{{html}}} à l'élément suivant. Voir l'annexe [[sec:anx-wikicreole]]
 sur le wikicréole pour plus d'informations.
 
-[fn:19] Une légère adaptation de la convention de nommage ~A_of_B~ d'{{{ocaml}}} ("wiki_of_template" n'aurait pas eu beaucoup
+[fn:20] Une légère adaptation de la convention de nommage ~A_of_B~ d'{{{ocaml}}} ("wiki_of_template" n'aurait pas eu beaucoup
 de sens puisque les deux sont paramètres de l'outil).
 
-[fn:20] Afin de simplifier l'écriture de celle-ci la commande du listing [[lst:c1-c2-template]] utilise une fonctionnalité
+[fn:21] Afin de simplifier l'écriture de celle-ci la commande du listing [[lst:c1-c2-template]] utilise une fonctionnalité
 /non-{{{acr(Posix)}}}/ : les /process substitutions/. Il est néanmoins possible d'obtenir le même effet avec plusieurs
 commandes et l'utilisation de fichiers temporaires.
 
-[fn:21] Voir l'annexe [[sec:anx-ghpages]] pour plus d'informations.
+[fn:22] Voir l'annexe [[sec:anx-ghpages]] pour plus d'informations.

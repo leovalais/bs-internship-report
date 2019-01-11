@@ -1,0 +1,124 @@
+\ProvidesPackage{codebox}
+\RequirePackage{xcolor}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{ifthen}
+\RequirePackage{keyval}
+\RequirePackage{fontawesome}
+\RequirePackage{minted}
+
+\newcommand{\codebox@corners}{rounded corners}
+\DeclareOption{sharp}{\renewcommand{\codebox@corners}{sharpish corners}}
+\ExecuteOptions{}
+\ProcessOptions\relax
+
+\newcommand{\codeboxcolor}[1]{}
+\newcommand{\setcodeboxcolor}[2]{\colorlet{codebox@#1}{#2}}
+
+\setcodeboxcolor{bg}{gray!50!black}
+\setcodeboxcolor{text}{white!90!black}
+\setcodeboxcolor{frame}{gray!70!black}
+\setcodeboxcolor{icon}{white}
+\setcodeboxcolor{title}{white}
+\setcodeboxcolor{right title}{white!70!black}
+\setcodeboxcolor{rule}{gray!70!black}
+\setcodeboxcolor{linenos}{gray}
+
+\newcommand{\codebox@mintedstyle}{monokai}
+\newcommand{\usecodeboxmintedstyle}[1]{\renewcommand{\codebox@mintedstyle}{#1}}
+
+
+\define@key{codebox}{icon}{\def\codebox@icon{#1}}
+\define@key{codebox}{title}{\def\codebox@title{#1}}
+\define@key{codebox}{right title}{\def\codebox@right{#1}}
+\define@key{codebox}{headless}[true]{\def\codebox@headless{#1}}
+\define@key{codebox}{shadow}[true]{\def\codebox@shadow{#1}}
+\define@key{codebox}{compact}[true]{\def\codebox@compact{#1}}
+\setkeys{codebox}{title=,icon=\faCode,right title=,headless=false,shadow=true,compact=false}
+
+
+\newenvironment{codebox}[1][]{%
+  \setkeys{codebox}{#1}%
+  \ifthenelse{\equal{\codebox@headless}{false}}{%
+    \def\codebox@vrule{.5mm}% tcolorbox default
+    \def\codebox@attrtitle{title}%
+    \def\codebox@valtitle{%
+      \ttfamily\small\textcolor{codebox@icon}{\codebox@icon}\quad%
+      \footnotesize\textcolor{codebox@title}{\codebox@title}\hfill%
+      \textcolor{codebox@right title}{\codebox@right}}}{%
+    \def\codebox@vrule{0mm}%
+    \def\codebox@attrtitle{}%
+    \def\codebox@valtitle{}}%
+  \ifthenelse{\equal{\codebox@shadow}{true}}{%
+    \def\codebox@enhanced{enhanced}%
+    \def\codebox@dropshadow{drop fuzzy shadow}}{%
+    \def\codebox@enhanced{}%
+    \def\codebox@dropshadow{}}%
+  \ifthenelse{\equal{\codebox@compact}{true}}{%
+    \def\codebox@topbot{0mm}}{%
+    \def\codebox@topbot{2mm}}% tcolorbox default
+  \begin{tcolorbox}[%
+    \codebox@attrtitle=\codebox@valtitle,
+    toprule=\codebox@vrule,
+    bottomrule=0mm,
+    left=9mm,
+    colback=codebox@bg,
+    \codebox@corners,
+    colframe=codebox@frame,
+    leftrule=0mm,
+    rightrule=0mm,
+    top=\codebox@topbot,
+    bottom=\codebox@topbot,
+    boxsep=1.5mm,
+    \codebox@enhanced, \codebox@dropshadow,
+    fontupper=\ttfamily,
+    fontlower=\ttfamily,
+    coltext=codebox@text]
+  }{\end{tcolorbox}}
+
+\newcommand{\codebox@mintedoptions}{%
+  \setminted{linenos,frame=leftline,rulecolor=codebox@rule,framesep=1em}}
+
+\newcommand{\codebox@linenosstyle}{%
+  \renewcommand{\theFancyVerbLine}{\ttfamily\textcolor{codebox@linenos}{\scriptsize \arabic{FancyVerbLine}}}}
+
+\newcommand{\setmintedcodebox}[2]{%
+  \BeforeBeginEnvironment{#1}{%
+    \begin{codebox}[title=#1,icon=\faCode,#2]
+      \usemintedstyle{\codebox@mintedstyle}% % default xcode
+      \codebox@mintedoptions%
+      \codebox@linenosstyle%
+      \small%
+  }%
+  \AfterEndEnvironment{#1}{\end{codebox}}}
+
+\newcommand{\newcodeboxedmintedfile}[4][]{%
+  \ifthenelse{\equal{#1}{}}
+  {\def\codebox@shortname{#2file}}
+  {\def\codebox@shortname{#1}}
+  \expandafter\newcommand\csname\codebox@shortname\endcsname[2][]{%
+    \begin{codebox}[title=#2 code,right title=\textit{--- ##2},icon=\faFileCodeO,#4]
+      \usemintedstyle{\codebox@mintedstyle}%
+      \codebox@mintedoptions%
+      \codebox@linenosstyle%
+      \small%
+      \inputminted[#3,##1]{#2}{##2}
+    \end{codebox}}}
+
+
+\newtcbox{code}{
+  on line,
+  colback=gray!10!white,
+  fontupper=\ttfamily\scriptsize,
+  frame empty,
+  sharp corners,
+  coltext=red!70!pink!80!gray,
+  leftrule=0mm,
+  rightrule=0mm,
+  boxsep=0mm,
+  top=1mm,
+  bottom=1mm,
+  left=.5mm,
+  right=.5mm
+}
+
+\endinput

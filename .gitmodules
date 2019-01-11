@@ -1,6 +1,0 @@
-[submodule "codebox"]
-	path = codebox
-	url = ./codebox
-[submodule "flatbox"]
-	path = flatbox
-	url = ./flatbox

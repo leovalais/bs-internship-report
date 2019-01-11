@@ -1,38 +1,25 @@
 #+TITLE: Rapport de stage chez BeSport
+#+SUBTITLE: Contribution au projet libre Ocsigen
 #+AUTHOR: Léo Valais (valais_l)
 #+EMAIL: leo.valais@epita.fr
-#+DATE: <2018-11-09 ven.>
+# #+DATE: <2018-11-09 ven.>
 #+LANGUAGE: fr
 #+STARTUP: content noinlineimages fnadjust hideblocks latexpreview
 #+OPTIONS: ^:{} _:{} ':t H:4
 
-# #+LaTeX_CLASS_OPTIONS: [a4paper,twoside]
-
-#+LATEX_HEADER: \usepackage{xcolor}
-#+LATEX_HEADER: \usepackage{xspace}
-#+LATEX_HEADER: \usepackage[francais]{babel}
-#+LATEX_HEADER: \usepackage{tikz}
-#+LATEX_HEADER: \usepackage{minted}
-# #+LATEX_HEADER: \usepackage{beton}
-# #+LATEX_HEADER: \usepackage{euler}
-#+LATEX_HEADER: \usepackage[ttdefault,scale=0.85]{sourcecodepro}
-#+LATEX_HEADER: \usepackage{fontawesome}
-#+LATEX_HEADER: \usepackage{xparse}
-#+LATEX_HEADER: \usepackage[in]{fullpage}
-#+LATEX_HEADER: \usepackage{titlesec}
-#+LATEX_HEADER: \usepackage{dashrule}
-# #+LATEX_HEADER: \usepackage{fancyhdr}
-# #+LATEX_HEADER: \usepackage[top=2cm,bottom=2cm,left=3cm,right=2cm,headheight=17pt,includehead,includefoot,heightrounded]{geometry}
-#+LATEX_HEADER: \usepackage{flatbox/flatbox}
-#+LATEX_HEADER: \usepackage{codebox/codebox}
-# #+LATEX_HEADER: \usepackage[texcoord,grid,gridunit=mm,gridcolor=red!20,subgridcolor=gray!10]{eso-pic}
-
-#+LATEX_HEADER: \hypersetup{colorlinks=true,urlcolor=blue!50!white,linkcolor=black}
-#+LATEX_HEADER: \NoAutoSpaceBeforeFDP
-#+LATEX_HEADER: \usetikzlibrary{positioning,shapes}
-
 #+NAME: setup-emacs-and-org
 #+BEGIN_SRC elisp :exports results :results silent
+  (add-to-list 'org-latex-classes
+               '("classyreport" "\\documentclass{classyreport}"
+                 ("\\section{%s}" . "\\section*{%s}")
+                 ("\\subsection{%s}" . "\\subsection*{%s}")
+                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+  (setq org-latex-subtitle-separate t
+        org-latex-subtitle-format "\\subtitle{%s}")
+
   (setq org-confirm-babel-evaluate (lambda (l b) nil))
   (setq org-latex-listings 'minted
         org-latex-custom-lang-environments '()
@@ -107,45 +94,27 @@
          "\n")
        ;; NOTE not authorising rules inside labels (whereas org seems to accept it)
        ;; 3 stars in a row asterism
-       "\\bigskip\\noindent\\textcolor{gray}{\\small\\centerline{*\\,*\\,*}}\\medskip")))
+       "\\asterism")))
 #+END_SRC
 
-#+NAME: setup-latex-env
-#+BEGIN_EXPORT latex
-%% Already inside document after \maketitle and \tableofcontents
-\AtEndDocument{%
-  \clearpage%
-  \titleformat{\section}{\Large\bf}{\thesection}{1em}{}%
-  \listoffigures%
-  \listoftables%
-  \renewcommand{\listoflistingscaption}{Liste des listings}%
-  \listoflistings}
+#+LATEX_CLASS: classyreport
+#+LaTeX_CLASS_OPTIONS: [draft]
 
-%% Header
-% \pagestyle{fancy}
-% \fancyhf{}
-% \fancyhead[LE,RO]{Share\LaTeX}
-% \fancyhead[RE,LO]{Guides and tutorials}
-% \fancyfoot[CE,CO]{\thepage}
+#+LATEX_HEADER: \usepackage[french]{babel}
+#+LATEX_HEADER: \usepackage{xparse}
+# #+LATEX_HEADER: \usepackage[ttdefault,scale=0.85]{sourcecodepro}
+#+LATEX_HEADER: \usepackage[sfdefault,light]{FiraSans} %% option 'sfdefault' activates Fira Sans as the default text font
+#+LATEX_HEADER: \usepackage{FiraMono}
+# #+LATEX_HEADER: \usepackage{fancyhdr}
+# #+LATEX_HEADER: \usepackage[top=2cm,bottom=2cm,left=3cm,right=2cm,headheight=17pt,includehead,includefoot,heightrounded]{geometry}
+# #+LATEX_HEADER: \usepackage[texcoord,grid,gridunit=mm,gridcolor=red!20,subgridcolor=gray!10]{eso-pic}
 
-\titleformat{\section}{\Large\bf\clearpage}{\thesection}{1em}{}[\color{gray!50!white}\titlerule]
-% \titleformat{\subsection}[runin]{\large\bf}{\thesubsection}{.5em}{}[\color{gray}\rule{\fill}{1mm}]
-% \titleformat{\subsubsection}{\normalsize\it}{\thesubsubsection}{.25em}{}[\color{gray}\titlerule]
-
-%% Custom environments
-\newenvironment{note}{\begin{noteffbox}{Note}\small}{\end{noteffbox}}
-\newenvironment{ex}{\begin{exampleffbox}{Exemple}\small}{\end{exampleffbox}}
-
-\newcommand{\bigquotemark}[1]{\begin{minipage}{.05\textwidth}\color{gray}\bf\Huge#1\end{minipage}}
-\renewenvironment{quote}{%
-  \begin{center}
-    \bigquotemark{\og}
-    \begin{minipage}{.75\textwidth}\small\it\color{gray!50!black}
-    }{%
-    \end{minipage}
-    \bigquotemark{\fg}
-  \end{center}}
-#+END_EXPORT
+#+LATEX_HEADER: \renewcommand*\oldstylenums[1]{{\firaoldstyle #1}}
+#+LATEX_HEADER: \usetikzlibrary{positioning,shapes}
+#+LATEX_HEADER: \begin{frontmatter}
+#+LATEX_HEADER: \includegraphics[scale=.25]{html_of_wiki.png}\par
+#+LATEX_HEADER: Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.  Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.  Proin neque massa, cursus ut, gravida ut, lobortis eget, lacus.  Mauris ac felis vel velit tristique imperdiet.  Proin neque massa, cursus ut, gravida ut, lobortis eget, lacus.
+#+LATEX_HEADER: \end{frontmatter}
 
 #+BEGIN_COMMENT
 L'exporter de latex se trouve dans le fichier ox-latex.el

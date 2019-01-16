@@ -2,11 +2,19 @@
 #+SUBTITLE: Contribution au projet libre Ocsigen
 #+AUTHOR: Léo Valais (valais_l)
 #+EMAIL: leo.valais@epita.fr
-# #+DATE: <2018-11-09 ven.>
+#+DATE: 12 septembre 2018 --- 15 janvier 2019
 #+LANGUAGE: fr
 #+STARTUP: content noinlineimages fnadjust hideblocks latexpreview
 #+OPTIONS: ^:{} _:{} ':t H:4
 
+
+#+BEGIN_COMMENT
+L'exporter de latex se trouve dans le fichier ox-latex.el
+de org-plus-X/ dans elpa/.
+Peut-être supprimer l'exporter d'example pour générer simplement
+un \begin{example}\end{example} où l'environment peut être définit
+comme on veut.
+#+END_COMMENT
 #+NAME: setup-emacs-and-org
 #+BEGIN_SRC elisp :exports results :results silent
   (add-to-list 'org-latex-classes
@@ -111,18 +119,6 @@
 
 #+LATEX_HEADER: \renewcommand*\oldstylenums[1]{{\firaoldstyle #1}}
 #+LATEX_HEADER: \usetikzlibrary{positioning,shapes}
-#+LATEX_HEADER: \begin{frontmatter}
-#+LATEX_HEADER: \includegraphics[scale=.25]{html_of_wiki.png}\par
-#+LATEX_HEADER: Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.  Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.  Proin neque massa, cursus ut, gravida ut, lobortis eget, lacus.  Mauris ac felis vel velit tristique imperdiet.  Proin neque massa, cursus ut, gravida ut, lobortis eget, lacus.
-#+LATEX_HEADER: \end{frontmatter}
-
-#+BEGIN_COMMENT
-L'exporter de latex se trouve dans le fichier ox-latex.el
-de org-plus-X/ dans elpa/.
-Peut-être supprimer l'exporter d'example pour générer simplement
-un \begin{example}\end{example} où l'environment peut être définit
-comme on veut.
-#+END_COMMENT
 
 #+MACRO: acr \textsc{$1}
 #+MACRO: lrde {{{acr(Lrde)}}}
@@ -136,7 +132,13 @@ comme on veut.
 #+MACRO: css {{{acr(Css)}}}
 #+MACRO: wikiext \sloppy\code{<\relax <$1>\relax >}
 #+MACRO: wikilink \sloppy\code{[[$1]]}
-#+MACRO: travis Travis {{{acr(Ci)}}}
+#+MACRO: ci {{{acr(ci)}}}
+#+MACRO: travis Travis {{{ci}}}
+
+#+LATEX_HEADER: \begin{frontmatter}
+#+LATEX_HEADER: \includegraphics[scale=.25]{html_of_wiki.png}\par
+#+LATEX_HEADER: Simplification, amélioration et extension d'un compilateur wikicréole \(\rightarrow\) \textsc{html} existant. Planification et exécution d'un plan de déploiement de celui-ci pour tous les projets Ocsigen. Mise en place d'un processus d'intégration continue à l'aide de Travis \textsc{ci}.
+#+LATEX_HEADER: \end{frontmatter}
 
 #+BEGIN_COMMENT
 TODO
@@ -205,7 +207,7 @@ essentiellement pour deux raisons :
 
 Le sujet proposé sur la convention est :
 #+BEGIN_QUOTE
-=[...]= Le but du stage est de développer de nouveaux modules pour les applications Web
+[...] Le but du stage est de développer de nouveaux modules pour les applications Web
 et mobiles Be Sport : outils d'importation de données, amélioration des outils de
 développement (dans le cadre du projet libre Ocsigen), développement de widgets
 spécifiques, interaction avec la base de données, mise en place de tests de l'application.
@@ -349,7 +351,7 @@ flexible et plus complet que le précédent. L'objectif final étant de l'inclur
 dans la liste des projets "publics" du projet Ocsigen comme outil
 générique de gestion de documentation.
 
-* one_html_of_wiki
+* Le travail effectué --- one_html_of_wiki
 ** But général<<sec:ohow-but-grl>>
 *** Le wikicréole
 Le projet Ocsigen est vieux de plus de dix ans. Les formats de documentation

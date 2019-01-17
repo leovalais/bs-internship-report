@@ -73,12 +73,12 @@ comme on veut.
 TODO
 - étoffer l'introduction
 - finir et peaufiner [[fig:how-arch]]
-- faire la présentation de BeSport
-- intégrer mon thème latex
 - styliser les tableaux
 - fancyhead, fancyfoot
 - références explicite (figure X on front page) + en français
-- supprimer les cadres autour des liens
+- modifier org-latex-src-block pour inclure automatiquement un listing lorsqu'il détecte un caption ou name
+- factoriser les wikinline et shellinline
+- permettre d'include le frontmatter dans le document et ne l'inclure qu'à la deuxième passe de latex (mettre dans un fichier à la première).
 #+END_COMMENT
 
 #+BEGIN_EXPORT latex

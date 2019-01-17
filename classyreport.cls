@@ -102,6 +102,16 @@
     \bigquotemark{\fg}
   \end{center}}
 
+\usemintedstyle{colorful}
+\newminted{text}{}
+\newminted{html}{}
+\newminted{shell}{}
+\newminted{ocaml}{}
+\setmintedcodebox{textcode}{title=Text,icon=\faParagraph}
+\setmintedcodebox{htmlcode}{title=HTML code}
+\setmintedcodebox{shellcode}{title=Shell script,icon=\faTerminal}%,compact,headless,shadow=false}
+\setmintedcodebox{ocamlcode}{title=OCaml code,icon=\(\mathbf{\lambda}\)}
+
 \newcommand\asterismcolor{black!65}
 \newcommand\asterism{\smallskip\noindent\textcolor{\asterismcolor}{\small\centerline{$\phantom{x}_{*\,\,\,*}^{\,\,\,*}$}}\smallskip}
 \newcommand\asterismflat{\medskip\noindent\textcolor{\asterismcolor}{\small\centerline{*\,*\,*}}\smallskip}

@@ -17,96 +17,18 @@ comme on veut.
 #+END_COMMENT
 #+NAME: setup-emacs-and-org
 #+BEGIN_SRC elisp :exports results :results silent
-  (add-to-list 'org-latex-classes
-               '("classyreport" "\\documentclass{classyreport}"
-                 ("\\section{%s}" . "\\section*{%s}")
-                 ("\\subsection{%s}" . "\\subsection*{%s}")
-                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+  ;; Load default configuration
+  (load-file "org-config.el")
 
-  (setq org-latex-subtitle-separate t
-        org-latex-subtitle-format "\\subtitle{%s}")
-
-  (setq org-confirm-babel-evaluate (lambda (l b) nil))
-  (setq org-latex-listings 'minted
-        org-latex-custom-lang-environments '()
-        org-latex-minted-options '(("frame" "leftline")
-                                   ("fontsize" "\\scriptsize")
-                                   ("linenos" ""))
-        org-latex-to-pdf-process '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-                                   "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-                                   "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
-
-  (setq org-latex-text-markup-alist '((bold . "\\textbf{%s}")
-                                      (code . protectedcode)
-                                      (italic . "\\emph{%s}")
-                                      (strike-through . "\\sout{%s}")
-                                      (underline . "\\uline{%s}")
-                                      (verbatim . protectedtexttt)))
-
-  (defun org-latex--text-markup (text markup info)
-    "Format TEXT depending on MARKUP text markup.
-  INFO is a plist used as a communication channel.  See
-  `org-latex-text-markup-alist' for details."
-    (let ((fmt (cdr (assq markup (plist-get info :latex-text-markup-alist)))))
-      (cl-case fmt
-        ;; No format string: Return raw text.
-        ((nil) text)
-        ;; Handle the `verb' special case: Find an appropriate separator
-        ;; and use "\\verb" command.
-        (verb
-         (let ((separator (org-latex--find-verb-separator text)))
-           (concat "\\verb"
-                   separator
-                   (replace-regexp-in-string "\n" " " text)
-                   separator)))
-        ;; Handle the `protectedtexttt' special case: Protect some
-        ;; special chars and use "\texttt{%s}" format string.
-        (protectedtexttt
-         (format "\\texttt{%s}"
-                 (replace-regexp-in-string
-                  "--\\|[\\{}$%&_#~^]"
-                  (lambda (m)
-                    (cond ((equal m "--") "-{}-")
-                          ((equal m "\\") "\\textbackslash{}")
-                          ((equal m "~") "\\textasciitilde{}")
-                          ((equal m "^") "\\textasciicircum{}")
-                          (t (org-latex--protect-text m))))
-                  text nil t)))
-        (protectedcode
-         (format "\\code{%s}"
-                 (replace-regexp-in-string
-                  "--\\|[\\{}$%&_#~^]"
-                  (lambda (m)
-                    (cond ((equal m "--") "-{}-")
-                          ((equal m "\\") "\\textbackslash{}")
-                          ((equal m "~") "\\textasciitilde{}")
-                          ((equal m "^") "\\textasciicircum{}")
-                          (t (org-latex--protect-text m))))
-                  text nil t)))
-        ;; Else use format string.
-        (t (format fmt text)))))
-
-  (defun org-latex-horizontal-rule (horizontal-rule _contents info)
-    "Transcode an HORIZONTAL-RULE object from Org to LaTeX.
-  CONTENTS is nil.  INFO is a plist holding contextual information."
-    (let ((attr (org-export-read-attribute :attr_latex horizontal-rule))
-          (prev (org-export-get-previous-element horizontal-rule info)))
-      (concat
-       ;; Make sure the rule doesn't start at the end of the current
-       ;; line by separating it with a blank line from previous element.
-       (when (and prev
-                  (let ((prev-blank (org-element-property :post-blank prev)))
-                    (or (not prev-blank) (zerop prev-blank))))
-         "\n")
-       ;; NOTE not authorising rules inside labels (whereas org seems to accept it)
-       ;; 3 stars in a row asterism
-       "\\asterism")))
+  ;; Your custom configuration here
+  (org-latex-add-custom-lang-environment 'wiki "wikicode")
 #+END_SRC
 
+#+LATEX_HEADER: \newminted[wikicode]{text}{}
+#+LATEX_HEADER: \setmintedcodebox{wikicode}{title=Wikicréole,icon=\faWikipediaW}
+
 #+LATEX_CLASS: classyreport
-#+LaTeX_CLASS_OPTIONS: [draft]
+#+LaTeX_CLASS_OPTIONS: []
 
 #+LATEX_HEADER: \usepackage[french]{babel}
 #+LATEX_HEADER: \usepackage{xparse}
@@ -365,7 +287,9 @@ commettre, tout en conservant l'esprit et la syntaxe générale de ceux-ci.
 
 #+NAME: lst:example-wiki
 #+CAPTION: Exemple de texte formatté en wikicréole.
-#+INCLUDE: "example.wiki" src text
+#+begin_listing
+#+INCLUDE: "example.wiki" src wiki
+#+end_listing
 
 Le listing [[lst:example-wiki]] montre un texte formatté en wikicréole. C'est donc
 un format léger et relativement pratique à utiliser, mais il est nécessaire de le
@@ -496,7 +420,9 @@ eval $(opam config env)
 
 #+NAME: lst:example-html
 #+CAPTION: Le code {{{html}}} du wiki du listing [[lst:example-wiki]] produit par one_html_of_wiki.
+#+begin_listing
 #+INCLUDE: "example.html" src html
+#+end_listing
 
 L'objectif principal est de remplacer l'utilisation de =how= en /interne/. Cependant,
 dans un second temps et selon mon choix, il est aussi possible de pousser le
@@ -539,7 +465,7 @@ développées afin d'augmenter les capacités du langage en permettant l'exécut
 code {{{ocaml}}} /pendant la compilation/ du fichier.
 
 Concrètement, les extensions ont la syntaxe suivante:
-#+BEGIN_SRC text
+#+BEGIN_SRC wiki
   <<extension_name attr1="val1" attr2="val2" ... attrN="valN" | content>>
 #+END_SRC
 
@@ -565,7 +491,9 @@ processus de compilation.
 
 #+NAME: lst:ext-ex
 #+CAPTION: Code {{{ocaml}}} nécessaire pour ajouter l'extension ~colored~.
+#+begin_listing
 #+INCLUDE: "ext-ex.ml" src ocaml
+#+end_listing
 
 Le tableau [[tab:ext-to-support]] liste et décrit les extensions (et leur attributs[fn:7])
 définies pour le projet Ocsigen que =ohow= doit pourvoir supporter[fn:8].
@@ -758,7 +686,7 @@ Le listing [[lst:link-exts-ex]] donne un exemple d'utilisation de ces extensions
 #+NAME: lst:link-exts-ex
 #+CAPTION: Exemple d'utilisation des liens sous forme d'extensions Ocsigen.
 #+begin_listing
-#+BEGIN_SRC text
+#+BEGIN_SRC wiki
   <<a_manual project="eliom" chapter="intro" | introduction of Eliom's docs>>
   <<a_manual project="eliom" subproject="ppx" | index.html of the PPX subproject of Eliom>>
   <<a_manual version="2.1" | index.html of the current project version 2.1>>
@@ -866,7 +794,9 @@ Cette extension n'accepte pas d'attributs ni de contenu.
 
 #+NAME: lst:menu-wiki-example
 #+CAPTION: Fichier ~menu.wiki~ du manuel du projet Eliom.
-#+INCLUDE: "eliom-menu.wiki" src text
+#+begin_listing
+#+INCLUDE: "eliom-menu.wiki" src wiki
+#+end_listing
 
 **** L'extension {{{wikiext(docversion)}}}
 Cette extension affiche la liste déroulante de la figure [[fig:docversion]]. Elle permet
@@ -990,7 +920,7 @@ accompli en ajoutant une classe {{{css}}} --- ~mainmenu-current~ et
 
 #+begin_ex
 Dans le fichier ~template.wiki~ du projet Eliom, l'on a[fn:19] :
-#+BEGIN_SRC text
+#+BEGIN_SRC wiki
 *@@class="mainmenu-current"@@[[wiki("eliom"):|Eliom]]
 *[[wiki("js_of_ocaml"):|Js_of_ocaml]]
 *[[wiki("lwt"):|Lwt]]
@@ -1005,7 +935,7 @@ Dans le fichier ~template.wiki~ du projet Eliom, l'on a[fn:19] :
 alors que dans le fichier ~template.wiki~ du projet Lwt, l'on a le code suivant,
 /presque identique/ à l'exception de la position des classes ~mainmenu-current~ et
 ~drawermainmenu-current~ :
-#+BEGIN_SRC text
+#+BEGIN_SRC wiki
 *[[wiki("eliom"):|Eliom]]
 *[[wiki("js_of_ocaml"):|Js_of_ocaml]]
 *@@class="mainmenu-current"@@[[wiki("lwt"):|Lwt]]
@@ -1094,9 +1024,11 @@ peut éventuellement rediriger facilemnt vers un fichier de sortie).
 
 #+NAME: lst:wiki-t1-t2
 #+CAPTION: Commande d'insertion d'un wiki dans deux templates.
+#+begin_listing
 #+BEGIN_SRC shell
   cat content.wiki | wit t1.wiki | wit t2.wiki
 #+END_SRC
+#+end_listing
 
 C'est avec la même simplicité que l'on peut gérer le cas de l'insertion de
 /deux contenus/ ~c1.wiki~ et ~c2.wiki~ dans /un seul/ template ~template.wiki~
@@ -1105,9 +1037,11 @@ listing [[lst:c1-c2-template]][fn:21].
 
 #+NAME: lst:c1-c2-template
 #+CAPTION: Commande d'insertion de deux contenus dans un seul template.
+#+begin_listing
 #+BEGIN_SRC shell
   wit <(wit template.wiki < c1.wiki) < c2.wiki
 #+END_SRC
+#+end_listing
 
 Enfin, les deux cas traités précédemment fonctionnent une fois généralisés à plus
 de deux templates et deux wikis, et peuvent être combinés, puisque la sortie
@@ -1131,11 +1065,15 @@ d'Unix et de la puissance du langage shell.
 
 #+NAME: lst:wit-ex-2t1c
 #+CAPTION: Exemple d'insertion d'un wiki dans deux templates.
+#+begin_listing
 #+INCLUDE: "wit-ex-2t1c.sh" src shell
+#+end_listing
 
 #+NAME: lst:wit-ex-1t2c
 #+CAPTION: Exemple d'insertion de deux wikis dans un template.
+#+begin_listing
 #+INCLUDE: "wit-ex-1t2c.sh" src shell
+#+end_listing
 
 La figure [[fig:ohow-pipeline]] schématise la /pipeline/ (chaîne de processus) mise
 en place pour compiler un contenu wikicréole avec ses différents templates (encore
@@ -1254,7 +1192,8 @@ de définitions suivante :
 
 #+NAME: lst:wiki-def-list
 #+CAPTION: Une liste de définitions en wikicréole (non-standard).
-#+BEGIN_SRC text
+#+begin_listing
+#+BEGIN_SRC wiki
   ;Ben Kenobi
   :Humain --- Jedi
   ;Général Grievous
@@ -1262,6 +1201,7 @@ de définitions suivante :
   ;Anakin Skywalker/Dark Vador
   :C'est compliqué... --- ...oh oui, très compliqué...
 #+END_SRC
+#+end_listing
 
 #+NAME: tab:d&co
 #+CAPTION: Décorations ajoutées au wikicréole par le projet Ocsigen.

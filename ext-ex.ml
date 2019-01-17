@@ -8,7 +8,7 @@
 
 (** Fonction produisant le code HTML de l'extension "colored". *)
 let create_colored_text _ args content =
-  let color = Ocsimore_lib.get_opt "color" in
+  let color = List.assoc "color" in
   Tyxml.Html.(div ~a:[a_style ("color: " ^ color)]
                 content)
 

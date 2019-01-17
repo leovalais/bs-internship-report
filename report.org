@@ -24,6 +24,7 @@ comme on veut.
   (org-latex-add-custom-lang-environment 'wiki "wikicode")
 #+END_SRC
 
+#+LATEX_HEADER: \usecodeboxmintedstyle{zenburn}
 #+LATEX_HEADER: \newminted[wikicode]{text}{}
 #+LATEX_HEADER: \setmintedcodebox{wikicode}{title=Wikicréole,icon=\faWikipediaW}
 

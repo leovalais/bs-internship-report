@@ -22,11 +22,17 @@ comme on veut.
 
   ;; Your custom configuration here
   (org-latex-add-custom-lang-environment 'wiki "wikicode")
+  (org-latex-add-custom-lang-environment 'wikinline "wikinline")
+  (org-latex-add-custom-lang-environment 'shellinline "shellinline")
 #+END_SRC
 
 #+LATEX_HEADER: \usecodeboxmintedstyle{zenburn}
 #+LATEX_HEADER: \newminted[wikicode]{text}{}
 #+LATEX_HEADER: \setmintedcodebox{wikicode}{title=Wikicréole,icon=\faWikipediaW}
+#+LATEX_HEADER: \newminted[wikinline]{text}{}
+#+LATEX_HEADER: \setmintedcodebox{wikinline}{headless,compact,shadow=false}
+#+LATEX_HEADER: \newminted[shellinline]{shell}{}
+#+LATEX_HEADER: \setmintedcodebox{shellinline}{headless,compact,shadow=false}
 
 #+LATEX_CLASS: classyreport
 #+LaTeX_CLASS_OPTIONS: []
@@ -466,7 +472,7 @@ développées afin d'augmenter les capacités du langage en permettant l'exécut
 code {{{ocaml}}} /pendant la compilation/ du fichier.
 
 Concrètement, les extensions ont la syntaxe suivante:
-#+BEGIN_SRC wiki
+#+BEGIN_SRC wikinline
   <<extension_name attr1="val1" attr2="val2" ... attrN="valN" | content>>
 #+END_SRC
 
@@ -755,7 +761,7 @@ des URLs plus simple à maintenir.
 #+begin_ex
 L'invocation de =ohow= suivante décrit l'architecture illustrée par la figure
 [[fig:ex-arch-ext]].
-#+BEGIN_SRC shell
+#+BEGIN_SRC shellinline
 $ ohow --root eliom/4.0.1 \
        --manual eliom/4.0.1/manual/src \
        --api eliom/4.0.1/api \
@@ -921,7 +927,7 @@ accompli en ajoutant une classe {{{css}}} --- ~mainmenu-current~ et
 
 #+begin_ex
 Dans le fichier ~template.wiki~ du projet Eliom, l'on a[fn:19] :
-#+BEGIN_SRC wiki
+#+BEGIN_SRC wikinline
 *@@class="mainmenu-current"@@[[wiki("eliom"):|Eliom]]
 *[[wiki("js_of_ocaml"):|Js_of_ocaml]]
 *[[wiki("lwt"):|Lwt]]
@@ -936,7 +942,7 @@ Dans le fichier ~template.wiki~ du projet Eliom, l'on a[fn:19] :
 alors que dans le fichier ~template.wiki~ du projet Lwt, l'on a le code suivant,
 /presque identique/ à l'exception de la position des classes ~mainmenu-current~ et
 ~drawermainmenu-current~ :
-#+BEGIN_SRC wiki
+#+BEGIN_SRC wikinline
 *[[wiki("eliom"):|Eliom]]
 *[[wiki("js_of_ocaml"):|Js_of_ocaml]]
 *@@class="mainmenu-current"@@[[wiki("lwt"):|Lwt]]

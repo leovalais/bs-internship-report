@@ -35,7 +35,7 @@ comme on veut.
 #+LATEX_HEADER: \setmintedcodebox{shellinline}{headless,compact,shadow=false}
 
 #+LATEX_CLASS: classyreport
-#+LaTeX_CLASS_OPTIONS: []
+#+LaTeX_CLASS_OPTIONS: [draft]
 
 #+LATEX_HEADER: \usepackage[french]{babel}
 #+LATEX_HEADER: \usepackage{xparse}
@@ -45,6 +45,7 @@ comme on veut.
 # #+LATEX_HEADER: \usepackage{fancyhdr}
 # #+LATEX_HEADER: \usepackage[top=2cm,bottom=2cm,left=3cm,right=2cm,headheight=17pt,includehead,includefoot,heightrounded]{geometry}
 # #+LATEX_HEADER: \usepackage[texcoord,grid,gridunit=mm,gridcolor=red!20,subgridcolor=gray!10]{eso-pic}
+#+LATEX_HEADER: \usepackage{pdfpages}
 
 #+LATEX_HEADER: \renewcommand*\oldstylenums[1]{{\firaoldstyle #1}}
 #+LATEX_HEADER: \usetikzlibrary{positioning,shapes}
@@ -1368,6 +1369,12 @@ génère ~<h2 class="title">Level 2 heading</h2>~.
 
 ** TODO GitHub Pages<<sec:anx-ghpages>>
 ** TODO La programmation multi-tiers<<sec:anx-pmt>>
+** Documentation de html_of_wiki
+Les pages suivantes, jusqu'à la fin de ce rapport, sont une copie de la
+documentation de html_of_wiki, en ligne à l'adresse
+[[https://ocsigen.org/html_of_wiki]], que j'ai écrite.
+
+\includepdf[pages=-]{howdoc}
 
 * Footnotes
 

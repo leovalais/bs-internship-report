@@ -35,7 +35,7 @@ comme on veut.
 #+LATEX_HEADER: \setmintedcodebox{shellinline}{headless,compact,shadow=false}
 
 #+LATEX_CLASS: classyreport
-#+LaTeX_CLASS_OPTIONS: [draft]
+#+LaTeX_CLASS_OPTIONS: []
 
 #+LATEX_HEADER: \usepackage[french]{babel}
 #+LATEX_HEADER: \usepackage{xparse}
@@ -1255,6 +1255,10 @@ précédente. La figure [[fig:gantt]] schématise le déroulé de mon stage.
 * Conclusion du stage
 
 
+#+BEGIN_EXPORT latex
+\pagebreak
+\pagecolor{blue!03}
+#+END_EXPORT
 * Annexes
 ** Le Wikicréole<<sec:anx-wikicreole>>
 Le wikicréole est un format de mise en forme de texte de la famille des formats
@@ -1374,7 +1378,11 @@ Les pages suivantes, jusqu'à la fin de ce rapport, sont une copie de la
 documentation de html_of_wiki, en ligne à l'adresse
 [[https://ocsigen.org/html_of_wiki]], que j'ai écrite.
 
+#+BEGIN_EXPORT latex
+\pagebreak
+\nopagecolor
 \includepdf[pages=-]{howdoc}
+#+END_EXPORT
 
 * Footnotes
 

@@ -1234,6 +1234,26 @@ avec {{{travis}}}. Ce job doit être composé des /phases/ suivantes :
               (~git push~) les fichiers {{{html}}} sur la branche ~gh-pages~ du
               projet[fn:22].
 
+** Réalisation
+Dans cette section est détaillé l'ensemble de mes travaux durant le stage, ainsi
+que l'étude de leur adéquation avec le cahier des charges décrit dans la section
+précédente. La figure [[fig:gantt]] schématise le déroulé de mon stage.
+
+#+NAME: fig:gantt
+#+CAPTION: Diagramme de Gantt du déroulé du stage
+#+ATTR_LATEX: :width 1.1\linewidth
+[[./gantt.png]]
+
+*** Développement en OCaml
+**** one_html_of_wiki
+**** doc_of_project
+**** quick-doc_of_project
+*** Déploiement avec {{{travis}}}
+*** Documentation
+
+* Conclusion du stage
+
+
 * Annexes
 ** Le Wikicréole<<sec:anx-wikicreole>>
 Le wikicréole est un format de mise en forme de texte de la famille des formats

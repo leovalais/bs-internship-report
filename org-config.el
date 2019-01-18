@@ -90,7 +90,7 @@
   (setf org-latex-custom-lang-environments
         (cons (list name env)
               org-latex-custom-lang-environments)))
-(let ((default-minted '(text html shell ocaml)))
+(let ((default-minted '(text html shell ocaml javascript)))
   (dolist (name default-minted)
     (org-latex-add-custom-lang-environment name
                                            (concat (symbol-name name)

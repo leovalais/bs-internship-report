@@ -759,8 +759,7 @@ des URLs plus simple à maintenir.
   #+end_note
 
 #+begin_ex
-L'invocation de =ohow= suivante décrit l'architecture illustrée par la figure
-[[fig:ex-arch-ext]].
+Voici une invocation possible de ~ohow~ :
 #+BEGIN_SRC shellinline
 $ ohow --root eliom/4.0.1 \
        --manual eliom/4.0.1/manual/src \
@@ -769,12 +768,6 @@ $ ohow --root eliom/4.0.1 \
        --assets eliom/4.0.1/manual/src/illustrations
 #+END_SRC
 #+end_ex
-
-#+NAME: fig:ex-arch-ext
-#+CAPTION: Exemple d'architecture compatible avec l'utilisation des extensions ~a_*~.
-#+begin_figure
-TODO
-#+end_figure
 
 Avec ces informations et contraintes supplémentaires, les extensions ~a_*~ peuvent
 déduire correctement chaque lien à générer. Si une de ces extensions est utilisée
@@ -1060,7 +1053,7 @@ la simplicité de la conception de =wit=, de son adéquation avec la philosophie
 d'Unix et de la puissance du langage shell.
 #+end_note
 
-**** TODO Exemples
+**** Exemples
 - Le listing [[lst:wit-ex-2t1c]] montre le résultat de l'insertion d'un wiki dans
   deux templates.
 - Le listing [[lst:wit-ex-1t2c]] montre le résultat de l'insertion de deux wikis dans
@@ -1094,9 +1087,125 @@ une fois, leur nombre n'est évidemment pas limité à 2).
 #+END_CENTER
 #+end_figure
 
-*** TODO Générer une version d'un projet : doc_of_project<<sec:cdc-dop>>
-**** Objectifs
+*** doc_of_project<<sec:cdc-dop>>
+Si ~ohow~ permet bien de compiler un fichier wikicréole en {{{html}}}, il est,
+par design, incapable de générer la documentation d'un projet en entier. Il est
+donc nécessaire d'écrire un outil supplémentaire, formant une couche d'abstraction
+autour de one_html_of_wiki, chargé de cela. Nous avons nommé cet outil /dop/,
+pour "doc_of_project".
+
+~dop~ n'apporte pas de nouvelles fonctionnalités mais permet d'utiliser ~ohow~
+plus simplement. Cet outil permet d'améliorer /l'ergonomie/ et le /confort d'utilisation/.
+
 **** Interface
+- Outil en ligne de commande.
+- Accepte un /fichier de configuration/, au format JSON, supportant les
+  paramètres décrits par le tableau [[tab:conf-keys]].
+- En particulier, ~dop~ doit être capable de /déduire/, en analysant la
+  structure du projet, un maximum de paramètres de configuration.
+- Accepte les options en ligne de commandes décrites par le tableau [[tab:dop-opts]].
+
+#+begin_note
+Pour des raison techniques, le format JSON requiert qu'un outil externe, ~jq~,
+soit installé. Comme il n'est pas toujours possible de l'installer et afin
+d'assurer une portabilité maximale, ~dop~ supporte aussi un autre format pour le
+fichier de configuration, nommé =plain=. Voir la documentation correspondante,
+disponible à l'adresse suivante: [[https://ocsigen.org/html_of_wiki/2.0/manual/intro#conf]].
+#+end_note
+
+**** Exemples
+Le listing [[lst:how.json]] donne un exemple de fichier de configuration. Supposons
+que ce fichier est nommé ~how.json~ et qu'il se situe au même niveau qu'un
+dossier ~2.0~, contenant le manuel et l'{{{api}}} de la version correspondante
+du projet ~html_of_wiki~ (cf. ~"project"~). Pour le compiler dans son
+intégralité, l'on invoque ~dop~ de la manière suivante:
+#+BEGIN_SRC shellinline
+$ dop -r 2.0-compiled -t json -c how.json -viulf 2.0/
+#+END_SRC
+
+#+NAME: tab:conf-keys
+#+CAPTION: Entrées supportées par le fichier de configuration géré par ~dop~.
+#+begin_table
+|----------------------+----------------+---------------------------------+
+| Entrée JSON          | Type           | Option de ~ohow~ correspondante |
+|----------------------+----------------+---------------------------------+
+| =project=            | /string/       | ~--project~                     |
+| =manual=             | /string/       | ~--manual~                      |
+| =api=                | /string/       | ~--api~                         |
+| =client=             | /string/       | ---                             |
+| =server=             | /string/       | ---                             |
+| =assets=             | /string/       | ~--assets~                      |
+| =images=             | /string/       | ~--images~                      |
+| =csw=                | /boolean/      | ~--csw~                         |
+| =menu=               | /boolean/      | ~--doctree~                     |
+| =templates=          | /string array/ | ~--template~                    |
+| =default_subproject= | /string/       | ~--default-subproject~          |
+|----------------------+----------------+---------------------------------+
+#+end_table
+
+#+NAME: tab:dop-opts
+#+CAPTION: Options de ligne de commande que doit supporter ~dop~.
+#+begin_table
+|--------------+--------+-------------------+-------------------+-------------------------------------------|
+| Nom(anglais) | Option | Valeur            | Valeur par défaut | Description                               |
+|--------------+--------+-------------------+-------------------+-------------------------------------------|
+| Config       | ~-c~   | Fichier           | ---               | Fichier de configuration                  |
+| Config type  | ~-t~   | ~json~ ou ~plain~ | ~plain~           | Format de ce fichier                      |
+| Clean        | ~-k~   | Présence          | ---               | Conserver les fichiers ~*.wiki~           |
+| Inferred     | ~-i~   | Présence          | ---               | Afficher la configuration déduite         |
+| Used         | ~-u~   | Présence          | ---               | Afficher la configuration utilisée        |
+| No run       | ~-n~   | Présence          | ---               | Ne pas compiler (/dry run/)               |
+| Root dir     | ~-r~   | Nom               | ~_dop~            | /Root directory/                          |
+| Force        | ~-f~   | Présence          | ---               | Réécrit ce dossier s'il existe            |
+| Local        | ~-l~   | Présence          | ---               | Liens locaux (cf. ~--local~)              |
+| Docversion   | ~-d~   | Fichier           | ---               | Fichier ~docversion~ (cf. ~--docversion~) |
+| Verbose      | ~-v~   | Présence          | ---               | Mode verbeux                              |
+| Help         | ~-h~   | Présence          | ---               | Affiche l'aide et termine                 |
+|--------------+--------+-------------------+-------------------+-------------------------------------------|
+#+end_table
+
+#+NAME: lst:how.json
+#+CAPTION: Exemple de fichier de configuration de ~dop~.
+#+begin_listing
+#+BEGIN_SRC javascript
+  {
+      "project": "html_of_wiki",
+      "manual": "man",
+      "api": "api",
+      "assets": "files",
+      "images": "files/images",
+      "csw": false,
+      "menu": true,
+      "templates": ["template1.wiki", "template2.wiki"]
+  }
+#+END_SRC
+#+end_listing
+
+*** quickdop
+Si ~dop~ permet de simplifier considérablement l'utilisation de ~ohow~, il reste
+néanmoins un paramètre à fournir manuellement et qui pourrait être automatisé :
+~--docversion~. Ce paramètre, comme expliqué précédemment, prend comme valeur le
+chemin vers un fichier contenant les noms des versions de la documentation à
+compiler, une par ligne.
+
+C'est l'objectif de ~quickdop~ ("quick-doc_of_project"). Cet outil en ligne de
+commande s'invoque de la manière suivante :
+#+BEGIN_SRC shellinline
+$ quickdop [-f] PROJECT OUTDIR [DOP_OPTIONS]
+#+END_SRC
+
+- ~PROJECT~ :: le dossier contenant les versions à compiler
+- ~OUTDIR~ :: le dossier devant contenir le résultat de la compilation (utiliser
+              l'option ~-f~ pour autoriser la réécriture)
+- ~DOP_OPTIONS~ :: les options à donner à ~dop~, à l'exception de ~-d~ et ~-r~
+
+Lorsque ~quickdop~ est ainsi invoqué, l'outil va se charger d'analyser le
+contenu de ~PROJECT~ et appeler ~dop~ pour tous les dossier dont le nom est
+décrit par l'expression régulière ~([0-9.]+){,3}|dev~. Il se charge également
+de générer le fichier passé à ~--docversion~ avec le nom des versions qu'il
+compile, ainsi que de les ordonner (versions par ordre numérique et ~dev~, si
+elle existe, à la fin).
+
 *** Gestion de la documentation du project Ocsigen
 Comme indiqué dans la section [[sec:ohow-but-grl]], il m'a été demandé de régler deux
 problèmes distincts :

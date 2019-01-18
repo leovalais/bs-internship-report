@@ -107,10 +107,12 @@
 \newminted{html}{}
 \newminted{shell}{}
 \newminted{ocaml}{}
+\newminted{javascript}{}
 \setmintedcodebox{textcode}{title=Text,icon=\faParagraph}
-\setmintedcodebox{htmlcode}{title=HTML code}
+\setmintedcodebox{htmlcode}{title=HTML code,icon=\faHtml5}
 \setmintedcodebox{shellcode}{title=Shell script,icon=\faTerminal}%,compact,headless,shadow=false}
 \setmintedcodebox{ocamlcode}{title=OCaml code,icon=\(\mathbf{\lambda}\)}
+\setmintedcodebox{javascriptcode}{title=JavaScript,icon=\faGlobe}
 
 \newcommand\asterismcolor{black!65}
 \newcommand\asterism{\smallskip\noindent\textcolor{\asterismcolor}{\small\centerline{$\phantom{x}_{*\,\,\,*}^{\,\,\,*}$}}\smallskip}

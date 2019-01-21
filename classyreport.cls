@@ -105,11 +105,13 @@
 \usemintedstyle{colorful}
 \newminted{text}{}
 \newminted{html}{}
+\newminted{yaml}{}
 \newminted{shell}{}
 \newminted{ocaml}{}
 \newminted{javascript}{}
 \setmintedcodebox{textcode}{title=Text,icon=\faParagraph}
 \setmintedcodebox{htmlcode}{title=HTML code,icon=\faHtml5}
+\setmintedcodebox{yamlcode}{title=YAML code,icon=\faGears}
 \setmintedcodebox{shellcode}{title=Shell script,icon=\faTerminal}%,compact,headless,shadow=false}
 \setmintedcodebox{ocamlcode}{title=OCaml code,icon=\(\mathbf{\lambda}\)}
 \setmintedcodebox{javascriptcode}{title=JavaScript,icon=\faGlobe}

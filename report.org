@@ -266,9 +266,6 @@ des applications web complexes, par exemple :
   d'un programme client plus un programme serveur plus un middleware dans le cloud plus etc.
   tous écrits dans des langages différents.
 
-Consulter l'annexe [[sec:anx-pmt]] pour plus d'informations sur le projet Ocsigen et sur
-la programmation multi-tiers, avec des exemples de code.
-
 ** Le positionnement du stage dans les travaux de l'entreprise
 C'est d'abord dans le cadre d'une /contribution au projet Ocsigen/ que mon
 stage se porte. En effet, BeSport utilisant un projet de recherche open-source
@@ -1245,11 +1242,175 @@ précédente. La figure [[fig:gantt]] schématise le déroulé de mon stage.
 #+ATTR_LATEX: :width 1.1\linewidth
 [[./gantt.png]]
 
-*** Développement en OCaml
-**** one_html_of_wiki
-**** doc_of_project
-**** quick-doc_of_project
+*** Développement
+Une fois le besoin établi comme précédemment, le développement s'est réalisé
+sans réels problèmes et assez rapidement. Il serait trop long et fastidieux de
+détailler dans le détail les problèmes techniques et algorithmiques rencontrés
+durant cette phase. Il est cependant important de noter certains points et de
+tirer les conclusions suivantes de cette période.
+
+Premièrement, le développement en OCaml est extrêmement confortable (en
+comparaison avec des langages plus classiques comme le C ou le Java).
+Son système de types fort et très expressif permet, grâce à la vérification de
+types intégrée au compilateur, de vérifier la cohérence du programme et ainsi
+détecter de nombreuses erreurs dès la compilation, au lieu de ne les subir qu'à
+l'exécution, comme dans d'autres langages, moins fortement typés (Python,
+JavaScript, {{{acr(Php)}}}, etc.)[fn:23].
+
+Deuxièmement, ayant travaillé avant ce stage avec le langage Haskell, un autre
+langage fonctionnel populaire, de nombreuses différences se sont vite fait voir.
+- /La gestion des effets de bord./ En effet, Haskell n'autorise aucun effet
+  de bord (affectation de variable). Pour palier à cela, le programmeur peut
+  utiliser une structure mathématique appelée /monade/ afin de simuler ces
+  effets de bord dans l'écriture du code, mais que l'implantation de ces effets
+  restent fonctionnels purs. Cependant, ce concept est difficile à comprendre et
+  à expliquer, et repousse chez beaucoup la volonté d'apprendre le Haskell.
+  OCaml autorise les effets de bords et les monades sont beaucoup moins
+  présentes, ce qui le rend /nettement plus accessible/.
+- /Le pragmatisme./ OCaml est un langage beaucoup plus pragmatique que Haskell
+  (qui lui est en revanche mathématiquement, théoriquement plus élégant). OCaml
+  supporte la mutabilité (mot clef ~mutable~), les arguments par défaut, les
+  arguments optionnels, la programmation orientée objet dans son sens le plus
+  populaire (Haskell a des /classes de types/, moins répandues), les modules de
+  premier ordre, des opérations d'entrée-sortie classique (contrairement à
+  Haskell qui requiert l'utilisation d'une monade, ~IO~), etc.
+
+J'ai pu utiliser certains projets du projet Ocsigen, notamment Lwt et Tyxml.
+Lwt permet l'écriture de code /asynchrone/ grâce à l'utilisation de /promesses/
+(promises en anglais) et Tyxml permet d'écrire du {{{html}}} directement en
+OCaml. Les différents éléments {{{html}}} sont notamment transposés dans le
+système de types d'OCaml afin de vérifier statiquement à la compilation la
+conformité des pages web ainsi construites avec le standard W3C. Par exemple,
+mettre deux ~<body/>~ dans un ~<html/>~ ne passe pas la vérification de type car
+le standard le ne permet pas. Le paragraphe suivant explique succinctement
+comment utiliser Lwt pour écrire du code OCaml asynchrone.
+
+Par exemple, supposons que la fonction ~get_users~ retourne une liste
+d'utilisateurs (de type ~user list~) qu'elle cherche dans une base de données
+sur le réseau. Cette fonction risque donc de prendre beaucoup de temps pour
+finir son exécution.
+Grâce à Lwt, au lieu de retourner une liste d'utilisateurs au bout de plusieurs
+secondes, elle retourne une /promesse de liste d'utilisateurs/ (de type ~user
+list Lwt.t~) /immédiatement/. À ce moment-là, la liste d'utilisateurs n'est pas
+encore construite, donc sa valeur n'est pas accessible. En revanche, l'on peut
+indiquer à la promesse quoi faire avec cette liste lorsqu'elle sera construite
+(quelque secondes plus tard), grâce à la fonction ~Lwt.bind~. Cette fonction
+retourne elle-même une promesse, qui ne sera tenue que lorsque la promesse de
+~get_users~ sera elle-même tenue. Le code du listing [[lst:lwt]] décrit comment
+récupérer la promesse de liste d'utilisateurs, ~users_p~, récupère leur noms
+lorsqu'elle est tenue et en fait une autre promesse, ~names_p~, qui est
+immédiatement tenue (grâce à ~Lwt.return~). Enfin les noms sont tous affichés.
+Seule la première promesse (~users_p~, retournée par ~get_users~) met du temps à
+être tenue. Les promesses sont un excellent moyen d'organiser du code concurrent
+par nature. En effet, pendant que le processus associé à ~get_users~ travaille,
+le programme OCaml peut continuer à s'exécuter, et chaîner (avec ~Lwt.bind~) les
+exécutions du programme. Les deux processus s'exécutent donc en même temps. Ce
+type de paradigme de programmation est particulièrement efficace pour le web,
+qui requiert par nature beaucoup d'acquisition de ressources. Cela permet à la
+fois au serveur et au client d'exécuter le maximum de code possible, jusqu'à ce
+que l'acquisition de la ressource devienne bloquante. (Le code du listing
+[[lst:lwt]] peut également s'écrire comme dans le listing [[lst:lwt-ppx]] grâce aux
+extensions de syntaxe ~ppx~.)
+
+Finalement, il m'a été possible d'utiliser certaines fonctionnalités avancées
+d'OCaml tels que les foncteurs de modules afin d'écrire du code générique
+facilement et élégamment.
+
+La partie développement de la solution a été assez rapide, intéressante et
+amusante (par rapport à la partie déploiement). Il m'a cependant fallu
+l'écourter un peu artificiellement. En effet, une fois le développement de
+~ohow~ quasiment terminé, il restait à faire ~dop~ et ~quickdop~. Or vu qu'il
+m'aurait fallu encore un certain temps pour les faire correctement en OCaml,
+ces outils ont été codés en shell. Ces scripts restent temporaires (dans l'idée).
+(En ce qui concerne la détection de lien morts, j'ai également développé un
+outil en Common Lisp pour réécrire les logs de ~linkchecker~[fn:24] au format
+JSON, afin de les lire facilement sur un afficheur de tableaux, tel que
+http://json2table.com/.)
+
+#+NAME: lst:lwt
+#+CAPTION: Exemple de code asynchrone avec Lwt
+#+begin_listing
+#+BEGIN_SRC ocaml
+  val fetch_and_print_users : unit -> unit Lwt.t
+  let fetch_and_print_users () =
+    let users_p = get_users () in
+    let names_p = Lwt.bind users_p (fun users ->
+        let names = List.map user_name users in
+        Lwt.return names)
+    in
+    Lwt.bind names_p (fun names ->
+        Lwt.return (List.iter print names))
+#+END_SRC
+#+end_listing
+
+#+NAME: lst:lwt-ppx
+#+CAPTION: Listing [[lst:lwt]] réécrit grâce aux extensions de syntaxe ~ppx~
+#+begin_listing
+#+BEGIN_SRC ocaml
+  let fetch_and_print_users () =
+    let%lwt users = get_users () in
+    let%lwt names = Lwt.return (List.map user_name users) in
+    (* Ou plus simplement:
+       let names = List.map user_name users in
+    ,*)
+    Lwt.return (List.iter print names))
+#+END_SRC
+#+end_listing
+
 *** Déploiement avec {{{travis}}}
+Comme me le répétait quelques fois mon maître de stage :
+#+BEGIN_QUOTE
+En informatique, on fait les 80% du travail les premiers 20% du temps. Pour 80%
+des 20% de travail restants, cela nous prend 20% des 80% de temps restants. Et ainsi de
+suite pour les 20% restants des 20%. On ne finit jamais un travail, on ne fait
+que converger...
+#+END_QUOTE
+
+Cela correspond très exactement à mon expérience avec le déploiement de html_of_wiki.
+Il ne m'a fallu qu'autour d'une semaine pour apprendre et expérimenter avec
+{{{travis}}} et pour concevoir et planifier le déploiement de la nouvelle
+infrastructure de documentation. En revanche, il m'a fallu environ un mois et
+demi pour régler les différents détails propres à chaque projet et pour que cela
+convienne à peu près aux différents mainteneurs.
+
+**** L'intégration continue avec {{{travis}}}
+{{{travis}}} est un service d'intégration continue ({{{acr(ci/cd)}}}) pour GitHub.
+Pour chaque dépôt pour lequel {{{travis}}} est activé, il faut y installer, à la
+racine, un fichier nommé ~.travis.yml~, au format YAML, contenant la
+configuration pour la {{{ci}}} pour cette branche git. Le listing [[lst:pyci]]
+contient un exemple de configuration de {{{travis}}} pour un projet python. À
+chaque commit, {{{travis}}} démarrera trois containers, un pour Python 2.7, un
+pour Python 3.5 et un pour Python 3.6. Il effectuera ensuite dans chacun d'eux
+la même action, c'est-à-dire exécuter le script ~pytest~ qui lance les tests unitaires.
+Si l'un d'entre eux, dans n'importe laquelle des trois versions de Python
+utilisées, échoue, le script ~pytest~ échoue aussi faisant ainsi échouer à son
+tour la {{{ci}}}. Le commit est alors marqué comme contenant une erreur et un
+mail est envoyé à son auteur pour l'informer de l'erreur. Dans le cas contraire
+où tous les tests passent pour toutes les versions, la {{{ci}}} passe et le
+commit est marqué comme valide.
+
+Reconduire à chaque commit ces tests permet à la fois de s'assurer continuellement
+de la /qualité/ du code, mais aussi de prévenir la /régression/ en la détectant
+le plus tôt possible.
+
+#+NAME: lst:pyci
+#+CAPTION: Exemple de fichier ~.travis.yml~
+#+begin_listing
+#+BEGIN_SRC yaml
+  language: python
+  python:
+      - "2.7"
+      - "3.5"
+      - "3.6"
+  script:
+      - pytest
+#+END_SRC
+#+end_listing
+
+**** {{{travis}}} pour html_of_wiki
+Dans un premier temps, il avait été convenu avec mon maître de stage de déplacer
+la documentation de chaque projet sur la branche =master=.
+
 *** Documentation
 
 * Conclusion du stage
@@ -1372,7 +1533,6 @@ individuellement. Par exemple, ~@@class="title"@@== Level 2 heading~
 génère ~<h2 class="title">Level 2 heading</h2>~.
 
 ** TODO GitHub Pages<<sec:anx-ghpages>>
-** TODO La programmation multi-tiers<<sec:anx-pmt>>
 ** Documentation de html_of_wiki
 Les pages suivantes, jusqu'à la fin de ce rapport, sont une copie de la
 documentation de html_of_wiki, en ligne à l'adresse
@@ -1435,22 +1595,26 @@ préfixés par ~foo~. Cette notation est utilisée ici pour dénoter toutes les 
 ~a_api~, ~a_api_code~ et ~a_api_type~. De la même manière ~a_*~ désigne toutes les extensions ayant fonction de lien implantées
 pour le projet Ocsigen.
 
-[fn:17] C'est une conséquence de la /programmation multi-tiers/. Voir l'annexe [[sec:anx-pmt]] sur ce style de programmtion pour
-plus d'informations.
-
-[fn:18] Le site web est dit /responsive/, c'est-à-dire qu'il s'adapte aux différentes résolutions d'appareils (laptop,
+[fn:17] Le site web est dit /responsive/, c'est-à-dire qu'il s'adapte aux différentes résolutions d'appareils (laptop,
 tablette, smartphone, etc.) et lorsque la largeur est trop faible, le menu de gauche "se déplace" dans le menu droite.
 Il n'y a en réalité aucun travail supplémentaire à fournir du côté du compilateur de wikicréole, c'est un travail
 de webdesign essentiellement en {{{css}}}.
 
-[fn:19] La syntaxe ~@@class="cls"@@~ permet d'ajouter une classe {{{html}}} à l'élément suivant. Voir l'annexe [[sec:anx-wikicreole]]
+[fn:18] La syntaxe ~@@class="cls"@@~ permet d'ajouter une classe {{{html}}} à l'élément suivant. Voir l'annexe [[sec:anx-wikicreole]]
 sur le wikicréole pour plus d'informations.
 
-[fn:20] Une légère adaptation de la convention de nommage ~A_of_B~ d'{{{ocaml}}} ("wiki_of_template" n'aurait pas eu beaucoup
+[fn:19] Une légère adaptation de la convention de nommage ~A_of_B~ d'{{{ocaml}}} ("wiki_of_template" n'aurait pas eu beaucoup
 de sens puisque les deux sont paramètres de l'outil).
 
-[fn:21] Afin de simplifier l'écriture de celle-ci la commande du listing [[lst:c1-c2-template]] utilise une fonctionnalité
+[fn:20] Afin de simplifier l'écriture de celle-ci la commande du listing [[lst:c1-c2-template]] utilise une fonctionnalité
 /non-{{{acr(Posix)}}}/ : les /process substitutions/. Il est néanmoins possible d'obtenir le même effet avec plusieurs
 commandes et l'utilisation de fichiers temporaires.
 
-[fn:22] Voir l'annexe [[sec:anx-ghpages]] pour plus d'informations.
+[fn:21] Voir l'annexe [[sec:anx-ghpages]] pour plus d'informations.
+
+[fn:22] Ces langages disposent souvent d'outils d'analyse de code (les
+/linters/), effectuant des vérification de types et de bonnes pratiques.
+Néanmoins, aussi aboutis soient-ils, ces outils ne remplaceront jamais les
+fortes garanties intégrées à OCaml, au coeur du langage par conception.
+
+[fn:23] https://wummel.github.io/linkchecker/

@@ -1464,6 +1464,15 @@ sur GitHub Pages (~provider~) et commit automatiquement sur la branche
 directement sur la branche wikidoc (~on: branch: wikidoc~) afin d'éviter de
 déployer des wikis encore en développement (dans une /Pull Request/ par exemple).
 
+#+begin_note
+À cause d'un bug dans {{{travis}}}, celui-ci ne peut pas déployer les liens
+symboliques crées par un des processus de la {{{ci}}}. Cela pose un problèmes
+pour la génération automatique de redirections. Afin de contourner le problème,
+des redirections HTTP ont été utilisées avec l'aide de la balise {{{html}}} :
+~<meta http-equiv="refresh" content="0; URL=X.html" />~.
+Cf. https://github.com/travis-ci/dpl/issues/912.
+#+end_note
+
 #+NAME: fig:gsearch
 #+CAPTION: La barre de recherche après mes modifications
 [[./gsearch.png]]
@@ -1534,6 +1543,13 @@ https://ocsigen.org :
 #+NAME: fig:contributing
 #+CAPTION: https://ocsigen.org/contributing
 [[./contributing.png]]
+
+** Conformité au cahier des charges
+Ma solution est conforme au cahier des charges et répond au besoin exprimé. Le
+seul point non implanté est la vérification automatique de lien morts dans la
+{{{ci}}}, par manque de temps. Heureusement, l'absence de cette fonctionnalité
+n'impacte pas la validité de l'infrastructure mise en place et la validité des
+résultats.
 
 * Conclusion du stage
 

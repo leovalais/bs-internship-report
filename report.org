@@ -349,7 +349,7 @@ d'abord s'intéresser au fonctionnement de =how=.
    s'assurant que chaque lien et valide (signale les liens morts) et que les
    /extensions/ sont bien exécutées.
 3. Les pages {{{html}}} sont ensuite placées dans un dossier ~ocsigen.org-repositories/~.
-4. Ces pages sont enfin copiées dans la branche ~gh-pages~ du projet auquel elles
+4. Ces pages sont enfin copiées dans la branche =gh-pages= du projet auquel elles
    appartiennent et sont poussées vers GitHub.
 
 Plusieurs inconvénients majeurs se distinguent déjà.
@@ -363,9 +363,9 @@ Plusieurs inconvénients majeurs se distinguent déjà.
   ce dépôt.
 - La nécessité de =ocsigen.org-data= induit une forte désorganisation au sein
   des projets :
-  - le code d'un projet $X$ se trouve sur ~master~ dans le dépôt $X$,
+  - le code d'un projet $X$ se trouve sur =master= dans le dépôt $X$,
   - les wikis de $X$ se trouvent se trouvent dans le dossier $X$ de =ocsigen.org-data=, et
-  - les pages {{{html}}} générées se trouvent sur la branche ~gh-pages~
+  - les pages {{{html}}} générées se trouvent sur la branche =gh-pages=
     du dépôt $X$.
 
 D'autre part, =how= souffre également des problèmes suivants:
@@ -378,7 +378,7 @@ D'autre part, =how= souffre également des problèmes suivants:
   #+begin_ex
   La page d'accueil du projet Eliom doit être ~eliom/2.8/intro.html~,
   en supposant que =2.8= est la dernière version en date. Il faut alors créer le
-  lien symbolique ~index.html~ à la racine du projet sur la branche ~gh-pages~
+  lien symbolique ~index.html~ à la racine du projet sur la branche =gh-pages=
   et le faire pointer vers ~intro.html~. À la sortie de la version =2.9=, il
   faut alors penser à placer les wikis dans ~ocsigen.org-data/eliom~, mais aussi
   à mettre à jour le lien ~eliom/index.html~ décrit ci-dessus.
@@ -829,7 +829,7 @@ Cette extension n'accepte pas d'attributs ni de contenu.
 
 **** L'extension {{{wikiext(client-server-switch)}}}
 Certaines parties de l'{{{api}}} (modules, types, etc.) de certains projets extistent
-en deux versions : une version /client/ et une version /serveur/[fn:17]. C'est par exemple
+en deux versions : une version /client/ et une version /serveur/. C'est par exemple
 le cas pour le module ~Eliom_lib~ du projet Eliom.
 
 #+LaTeX: \begin{ffbox}[note]{Résumé}
@@ -1229,7 +1229,7 @@ avec {{{travis}}}. Ce job doit être composé des /phases/ suivantes :
   - l'outil de détection de liens morts n'en a trouvé aucun.
 - /Deploy/ :: enfin, si les tests post-compilation sont tous passés, il faut
               déployer le site généré sur GitHub Pages, c'est-à-dire en poussant
-              (~git push~) les fichiers {{{html}}} sur la branche ~gh-pages~ du
+              (~git push~) les fichiers {{{html}}} sur la branche =gh-pages= du
               projet[fn:22].
 
 ** Réalisation
@@ -1409,9 +1409,131 @@ le plus tôt possible.
 
 **** {{{travis}}} pour html_of_wiki
 Dans un premier temps, il avait été convenu avec mon maître de stage de déplacer
-la documentation de chaque projet sur la branche =master=.
+la documentation de chaque projet sur la branche =master=. Or, après discussion
+avec le mainteneur d'un des projets (Tyxml), l'on a du changer de modèle. En
+effet ce dernier ne voulait pas imposer à ses utilisateurs voulant basculer sur
+la branche =master= la copie de plusieurs dizaines de kilo octets de
+documentation (pour la plupart générée automatiquement qui plus est).
+
+Le second modèle adopté a été de faire partir du branche =wikidoc= à partir de
+=master= pour y entreposer la documentation. Cela a plusieurs avantages :
+1. La documentation n'est plus sur =master=.
+2. Il n'y a pas besoin de modifier le ~.travis.yml~ de chaque projet pour y
+   intégrer la génération de la documentation. Une seule configuration générique
+   peut être copiée telle quelle (quasiment) dans chaque projet.
+3. Il n'y a pas le surcoût de compilation des wikis (parfois atteignant une
+   vingtaine de minutes) à chaque commit du projet. Cela permet de réduire
+   considérablement le temps d'exécution de chaque /build/.
+Il m'a alors fallu recommencer ce travail de déploiement pour les projets
+traités avant Tyxml.
+
+Enfin, il m'a été suggéré de ne pas faire partir la branche =wikidoc= de
+=master= mais d'en faire une /branche orpheline/, c'est-à-dire une branche sans
+historique (comme =master= après un ~git init~). Cela se fait avec la commande
+suivante:
+#+BEGIN_SRC shellinline
+git checkout --orphan wikidoc
+#+END_SRC
+
+**** Deux phases de déploiement
+Le déploiement a dû être réalisé en deux étapes à cause de problèmes techniques.
+En effet, il n'est pas possible de déployer html_of_wiki sur chaque projet en
+même temps car il faut que chaque mainteneur /review/ le code. Et cela peut
+prendre du temps... De plus, en cas de problème mineur, il vaut mieux éviter que
+le site https://ocsigen.org soit inaccessible.
+
+Cependant, le code {{{css}}} du site a été modifié par mes soins, le rendant
+incompatible avec le site généré par html_of_wiki 1.0. J'ai en effet ajouté et
+refait le design de certains composants de la page :
+- la barre de recherche qui se déploie lorsque sélectionnée (figure [[fig:gsearch]]) ;
+- le /switch/ client/serveur, à la iOS (figure [[fig:csw]]).
+De plus les templates ont été centralisés dans le dépôt =ocsigen.github.io=.
+
+Ainsi, histoire de conserver l'état de l'ancien site, mais de commencer le
+déploiement d'une partie du nouveau, il a été nécessaire de passer par
+l'utilisation de scripts et feuilles de style temporaires. C'est dans un second
+temps seulement, que ces fichiers temporaires ont étés supprimés. Le listing
+[[lst:trml]] donne un exemple de fichier ~.travis.yml~ dans sa version finale
+(projet js_of_ocaml). Le script temporaire y a été remplacé par le script
+~how.sh~, factorisé et téléchargé par chaque /build/ pour éviter la duplication
+de code. La seule réelle nouveauté par rapport à l'exemple du listing [[lst:pyci]]
+est la partie ~deploy~ en fin de fichier. Lorsque le ~script~ a fonctionné
+(compilation des wikis sans erreurs), {{{travis}}} déploie les fichiers générés
+sur GitHub Pages (~provider~) et commit automatiquement sur la branche
+=gh-pages= du projet. Il ne fait cela que lorsque le commit traité se situe
+directement sur la branche wikidoc (~on: branch: wikidoc~) afin d'éviter de
+déployer des wikis encore en développement (dans une /Pull Request/ par exemple).
+
+#+NAME: fig:gsearch
+#+CAPTION: La barre de recherche après mes modifications
+[[./gsearch.png]]
+
+#+NAME: fig:csw
+#+CAPTION: Le /switch/ client/serveur après mes modifications
+[[./csw.png]]
+
+#+NAME: lst:trml
+#+CAPTION: Fichier ~.travis.yml~ final pour js_of_ocaml
+#+begin_listing
+#+BEGIN_SRC yaml
+  language: c
+
+  env: HOW_DOC=doc HOW_CONFIG=how.json HOW_OUT=_doc
+
+  install:
+      - wget https://ocsigen.org/how.sh
+      - . how.sh
+      - how-install
+
+  script:
+      - how-generate
+      - how-redirect "$HOW_LATEST/manual/overview" $HOW_OUT/index.html
+      - how-redirect-manual 1.4 1.0.9
+      - how-redirect-manual 1.4 1.1.1
+      - how-redirect-manual 1.4 1.2
+      - how-redirect-manual 1.4 1.3
+      - how-redirect-manual 2.4.1 2.0
+      - how-redirect-manual 2.4.1 2.1
+      - how-redirect-manual 2.4.1 2.2
+      - how-redirect-manual 2.4.1 2.3
+      - how-redirect-manual 2.4.1 2.4
+
+  deploy:
+    provider: pages
+    keep-history: true
+    skip-cleanup: true
+    github-token: $GHP_TOKEN
+    local-dir: _doc
+    on:
+      branch: wikidoc
+
+#+END_SRC
+#+end_listing
+
+**** Conclusion du déploiement
+Cette phase de mon stage a été fastidieuse et répétitive. J'ai néanmoins pu
+découvrir comment fonctionne et mettre en place un environnement d'intégration
+continue (l'une de mes attentes du stage).
+
+Tous les mainteneurs n'étaient pas satisfaits de l'infrastructure mise en place.
+Néanmoins, cela constitue un net progrès en termes de flexibilité et
+d'utilisation par rapport à l'infrastructure existante à mon arrivée.
 
 *** Documentation
+Il a fallu écrire un certain nombre de documentations, disponibles sur le site
+https://ocsigen.org :
+- la documentation de html_of_wiki (voir l'annexe [[sec:anx-how]]) ;
+- un wiki pour l'installation du projet Ocsigen (voir la figure [[fig:install]]) ;
+- un wiki pour le processus de contribution vis-à-vis de la documentation (voir
+  la figure [[fig:contributing]]).
+
+#+NAME: fig:install
+#+CAPTION: https://ocsigen.org/install
+[[./install.png]]
+
+#+NAME: fig:contributing
+#+CAPTION: https://ocsigen.org/contributing
+[[./contributing.png]]
 
 * Conclusion du stage
 
@@ -1533,7 +1655,7 @@ individuellement. Par exemple, ~@@class="title"@@== Level 2 heading~
 génère ~<h2 class="title">Level 2 heading</h2>~.
 
 ** TODO GitHub Pages<<sec:anx-ghpages>>
-** Documentation de html_of_wiki
+** Documentation de html_of_wiki<<sec:anx-how>>
 Les pages suivantes, jusqu'à la fin de ce rapport, sont une copie de la
 documentation de html_of_wiki, en ligne à l'adresse
 [[https://ocsigen.org/html_of_wiki]], que j'ai écrite.
@@ -1595,26 +1717,26 @@ préfixés par ~foo~. Cette notation est utilisée ici pour dénoter toutes les 
 ~a_api~, ~a_api_code~ et ~a_api_type~. De la même manière ~a_*~ désigne toutes les extensions ayant fonction de lien implantées
 pour le projet Ocsigen.
 
-[fn:17] Le site web est dit /responsive/, c'est-à-dire qu'il s'adapte aux différentes résolutions d'appareils (laptop,
+[fn:18] Le site web est dit /responsive/, c'est-à-dire qu'il s'adapte aux différentes résolutions d'appareils (laptop,
 tablette, smartphone, etc.) et lorsque la largeur est trop faible, le menu de gauche "se déplace" dans le menu droite.
 Il n'y a en réalité aucun travail supplémentaire à fournir du côté du compilateur de wikicréole, c'est un travail
 de webdesign essentiellement en {{{css}}}.
 
-[fn:18] La syntaxe ~@@class="cls"@@~ permet d'ajouter une classe {{{html}}} à l'élément suivant. Voir l'annexe [[sec:anx-wikicreole]]
+[fn:19] La syntaxe ~@@class="cls"@@~ permet d'ajouter une classe {{{html}}} à l'élément suivant. Voir l'annexe [[sec:anx-wikicreole]]
 sur le wikicréole pour plus d'informations.
 
-[fn:19] Une légère adaptation de la convention de nommage ~A_of_B~ d'{{{ocaml}}} ("wiki_of_template" n'aurait pas eu beaucoup
+[fn:20] Une légère adaptation de la convention de nommage ~A_of_B~ d'{{{ocaml}}} ("wiki_of_template" n'aurait pas eu beaucoup
 de sens puisque les deux sont paramètres de l'outil).
 
-[fn:20] Afin de simplifier l'écriture de celle-ci la commande du listing [[lst:c1-c2-template]] utilise une fonctionnalité
+[fn:21] Afin de simplifier l'écriture de celle-ci la commande du listing [[lst:c1-c2-template]] utilise une fonctionnalité
 /non-{{{acr(Posix)}}}/ : les /process substitutions/. Il est néanmoins possible d'obtenir le même effet avec plusieurs
 commandes et l'utilisation de fichiers temporaires.
 
-[fn:21] Voir l'annexe [[sec:anx-ghpages]] pour plus d'informations.
+[fn:22] Voir l'annexe [[sec:anx-ghpages]] pour plus d'informations.
 
-[fn:22] Ces langages disposent souvent d'outils d'analyse de code (les
+[fn:23] Ces langages disposent souvent d'outils d'analyse de code (les
 /linters/), effectuant des vérification de types et de bonnes pratiques.
 Néanmoins, aussi aboutis soient-ils, ces outils ne remplaceront jamais les
 fortes garanties intégrées à OCaml, au coeur du langage par conception.
 
-[fn:23] https://wummel.github.io/linkchecker/
+[fn:24] https://wummel.github.io/linkchecker/

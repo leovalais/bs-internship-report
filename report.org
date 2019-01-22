@@ -157,12 +157,13 @@ propriétaires, qu'il est nécessaire de compiler vers de l'{{{html}}} à chaque
 C'était le but de Ocsimore et Ocsiforge, outils du projet Ocsigen, aujourd'hui dépréciés.
 Les remplacent un outil interne, lourd, monolithique et peu flexible, qu'il m'a été demandé de remplacer.
 Ma mission consiste donc à développer cet outil, simple, ergonomique et flexible, générant les pages
-de documentation au format {{{html}}}, afin de les télé-verser vers GitHub Pages.
-
-Une fois cela terminé, mon travail se portera davantage vers la plate-forme BeSport,
-notamment en ce qui concerne /l'importation de données/.
-
------
+de documentation au format {{{html}}}, afin de les télé-verser vers GitHub
+Pages. Il me faut également déployer cet outil vers tous les projets Ocsigen
+afin de permettre, à l'aide de {{{travis}}}, de générer et déployer leur
+documentation en continu, à l'échelle du commit. La mise en place d'un
+environnement d'intégration continue, ou {{{acr(ci/cd)}}}, fait donc partie
+mon sujet de stage.
+\pagebreak
 
 Mes attentes par rapport à ce stage sont multiples.
 - Découvrir l'utilisation professionnelle de langages fonctionnels et de {{{ocaml}}}
@@ -182,36 +183,33 @@ Ce dernier, disponible sur toutes les plate-formes majeures, c'est-à-dire
 /le web, iOS et Android/, est destinée, comme son nom l'indique, au milieu
 du sport.
 
-Travaillent chez BeSport les personnes listées ci-dessous, dans trois "équipes" distinctes :
+Travaillent chez BeSport les personnes listées ci-dessous, dans deux "équipes" distinctes :
 une équipe /technique/, chargée du développement de la plate-forme et une équipe /sport/
 qui est chargée de fournir du contenu sportif ainsi que de garantir que le produit soit
-au plus proche des besoins du sport possible. Il y a aussi naturellement une équipe
-administrative.
+au plus proche des besoins du sport possible.
 
 S'ajoutent à cela quatre stagiaires, moi compris.
 
 *** Équipe technique
+- Phillipe Robert :: {{{acr(Ceo)}}}
 - Vincent Balat :: {{{acr(Cto)}}}
 - Jérôme Vouillon :: Ingénieur de recherche OCaml et Ocsigen
 - Jan Rochel :: Ingénieur de recherche
 - Rémy El Sibaïe :: Développeur
 - Idir Lankri :: Développeur
-- Baptsite Strazzula :: Développeur
-- Maya El Sibai :: {{{acr(Ui)}}}/{{{acr(Ux)}}} designer
-- Papa Mor Faye :: Data scientist
+- Baptiste Strazzula :: Développeur
 - Kolia Iakovlev :: Data scientist/importation de données
-
-*** Équipe administrative
-- Phillipe Robert :: {{{acr(Ceo)}}}
+- Maya El Sibai :: {{{acr(Ui)}}}/{{{acr(Ux)}}} designer
+- Victor Girla :: {{{acr(Ui)}}}/{{{acr(Ux)}}} designer
 - Léa Hubsch :: Ressources humaines & stratégie
 
-*** Équipe sportive
-- Benoit Guyot :: Responsable sportif
-- Jean Marc Gillet :: Journaliste sportif
-- Léopold Rucher :: Journaliste sportif
-- Hugo Bruchet :: Journaliste sportif
-- François Trillo :: Journaliste sportif
-- Raphaelle Steg :: Journaliste sportif
+*** Équipe sport
+- Benoit Guyot ::
+- Jean Marc Gillet ::
+- Léopold Rucher ::
+- Hugo Bruchet ::
+- François Trillo ::
+- Raphaelle Steg ::
 
 ** Le service
 *** Le réseau social BeSport
@@ -272,7 +270,7 @@ stage se porte. En effet, BeSport utilisant un projet de recherche open-source
 comme /stack/, l'entreprise dispose d'un financement recherche afin de continuer
 à maintenir et développer le projet Ocsigen.
 
-Ma première mission est donc de reprendre et transformer un outil interne de
+Ma mission est donc de reprendre et transformer un outil interne de
 gestion de la documentation du projet afin de le rendre plus ergonomique,
 flexible et plus complet que le précédent. L'objectif final étant de l'inclure
 dans la liste des projets "publics" du projet Ocsigen comme outil
@@ -1663,14 +1661,17 @@ de définitions suivante :
 Comme expliqué dans la section [[sec:cdc-ohow]], le wikicréole Ocsigen inclut un
 puissant système d'extensions avec la syntaxe suivante :
 {{{wikiext(ext attr1="val1" attr2="val2" | content)}}}, où le contenu ~content~
-est analysé récusivement et les valeurs ~valN~ non.
+est analysé récursivement et les valeurs ~valN~ non.
 
 **** Classes {{{html}}} /inline/
 Il est enfin possible d'ajouter des classes {{{html}}} à des éléments
 individuellement. Par exemple, ~@@class="title"@@== Level 2 heading~
 génère ~<h2 class="title">Level 2 heading</h2>~.
 
-** TODO GitHub Pages<<sec:anx-ghpages>>
+** GitHub Pages<<sec:anx-ghpages>>
+Consulter la documentation de GitHub Pages à l'adresse https://pages.github.com/
+pour plus d'informations sur ce mécanisme.
+
 ** Documentation de html_of_wiki<<sec:anx-how>>
 Les pages suivantes, jusqu'à la fin de ce rapport, sont une copie de la
 documentation de html_of_wiki, en ligne à l'adresse

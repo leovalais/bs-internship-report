@@ -311,7 +311,7 @@ d'un ensemble de projets. Ils servaient, entres autres, à:
 - gérer les différentes version de la documentation de chaque projet,
 - gérer les permissions sur l'écriture de la documentation,
 - déployer la documentation générée sur internet,
-- proposer un blog, un newsfeed, un blog, etc., et
+- proposer un blog, un newsfeed, etc., et
 - gérer un base d'utilisateurs s'étant inscrits sur le site déployé.
 
 De plus, Ocsimore a ajouté au wikicréole un système /d'extensions/ afin d'étendre
@@ -542,7 +542,7 @@ implanté un compilateur wikicréole \rightarrow {{{html}}} écrit en {{{ocaml}}
 pouvoir remplir leur fonction. Ce compilateur a été repris par =how= et
 /doit également être réutilisé par =ohow=/.
 
-Cependant celui-ci doit d'être /modifié/, notament ce qui concerne la génération
+Cependant celui-ci doit d'être /modifié/, notamment ce qui concerne la génération
 de liens entre les pages web. En effet, les liens générés sont des /liens absolus/,
 trop rigides (il est impossible de tester localement le site web généré puisque les
 liens pointent vers des URLs comme [[https://ocsigen.org/project/page]]). Il faut donc
@@ -654,7 +654,7 @@ processus de compilation.
 Le listing [[lst:example-href_of_link]] montre en quoi la fonction ~href_of_link~
 est responsable d'une déduction de liens correcte et aussi, plus généralement,
 comment l'on peut générer des morceaux d'{{{html}}} en {{{ocaml}}} à l'aide
-de la bibliothèque Tyxml (appartennant au projet Ocsigen).
+de la bibliothèque Tyxml (appartenant au projet Ocsigen).
 #+end_ex
 
 En revanche, pour les extensions, le fonctionnement est différent et un exemple
@@ -713,7 +713,7 @@ peut être lu comme "dans le dossier de la page courante, aller dans le dossier
 un lien vers celle-ci".
 
 Dans le cas des extensions, le logiciel ne pouvant pas "deviner" où se situe la
-ressource demandée, il est necésaire /d'imposer une architecture/ que l'utilisateur
+ressource demandée, il est nécessaire /d'imposer une architecture/ que l'utilisateur
 de celles-ci doit /respecter/ afin que leur fonctionnement soit garanti.
 Concrètement, l'architecture ci-dessous a été choisie, autant pour des raisons
 techniques imposées par GitHub Pages que pour rendre la compatibilité
@@ -749,7 +749,7 @@ des URLs plus simple à maintenir.
   - ~--images~ désigne le dossier contenant les images (~a_img~), et,
   - ~--assets~ désigne le dossier contenant les fichiers (~a_file~).
   #+begin_note
-  Il n'est pas nécéssaire que les valeurs de ces options correspondent à des
+  Il n'est pas nécessaire que les valeurs de ces options correspondent à des
   dossiers réels /au moment de la compilation/. En effet, ces valeur sont seulement
   utilisées pour déduire les liens relatifs produits par les extensions ~a_*~.
   Naturellement, ces dossiers devront exister une fois le site déployé afin de ne
@@ -828,7 +828,7 @@ Il m'a donc été demandé de la styliser et de la placer à un endroit plus app
 Cette extension n'accepte pas d'attributs ni de contenu.
 
 **** L'extension {{{wikiext(client-server-switch)}}}
-Certaines parties de l'{{{api}}} (modules, types, etc.) de certains projets extistent
+Certaines parties de l'{{{api}}} (modules, types, etc.) de certains projets existent
 en deux versions : une version /client/ et une version /serveur/. C'est par exemple
 le cas pour le module ~Eliom_lib~ du projet Eliom.
 
@@ -847,7 +847,7 @@ composant illustré par la figure [[fig:csw-demo]] et produit par l'extension
 comme peu intuitif, mal stylisé et mal positionné (entre le
 {{{wikiext(docversion)}}} et le {{{wikiext(doctree)}}}).
 
-Il m'a été demandé de le remplacer, en le rendant plus ésthétique, en améliorant
+Il m'a été demandé de le remplacer, en le rendant plus esthétique, en améliorant
 sa position dans la page et tout en conservant sa fonction.
 Cette extension n'accepte pas d'attributs ni de contenu.
 
@@ -867,13 +867,13 @@ Puisque ce n'est donc pas la responsabilité de =ohow= que de gérer les
 templates, l'outil n'a donc pas à gérer cette extension.
 
 #+LaTeX: \begin{ffbox}{En bref}
-Un template est un fichier wikicréole classique contenant une occurence
+Un template est un fichier wikicréole classique contenant une occurrence
 de l'extension {{{wikiext(content)}}}. Lorsqu'un wiki classique est
 compilé, son contenu est "copié-collé à la place" de cette extension
 dans le template, et le tout est ensuite compilé vers de l'{{{html}}}.
 
 Cela a pour effet de "rajouter" du code wikicréole avant et après le
-contenu de chaque wiki, notament pour des questions de mise en page.
+contenu de chaque wiki, notamment pour des questions de mise en page.
 C'est aussi dans le template que l'on spécifie l'agencement de la page ---
 la position relative du menu par rapport au contenu.
 
@@ -882,7 +882,7 @@ communes à chaque page de la documentation.
 #+LaTeX: \end{ffbox}
 
 **** Les autres extensions
-Il n'est pas nécéssaire de réécrire ni même modifier les autres extensions
+Il n'est pas nécessaire de réécrire ni même modifier les autres extensions
 du tableau [[tab:ext-to-support]].
 
 **** Gestion des liens vers les scripts et les feuilles de style
@@ -949,7 +949,7 @@ alors que dans le fichier ~template.wiki~ du projet Lwt, l'on a le code suivant,
 
 La majorité du code est donc /dupliquée/ dans les différents fichiers ~template.wiki~
 de tous les projets et les seules différences se situent au niveau de /détails/ comme
-les classes {{{css}}} évoquées précedemment. La duplication de code étant une mauvaise
+les classes {{{css}}} évoquées précédemment. La duplication de code étant une mauvaise
 pratique de programmation, il m'a été demandé de trouver une solution afin de n'avoir
 /qu'un seul fichier ~template.wiki~ pour tous les projets/ et de trouver un moyen
 d'ajouter cette classe automatiquement lors de la compilation.
@@ -968,7 +968,7 @@ son contenu que si le wiki en train d'être compilé appartient au projet spéci
 **** Documentation
 Que =ohow= soit destiné à un usage interne uniquement ou à être publié, il est
 impératif de le documenter. De plus, étant un outil de gestion de documentation,
-il est necéssaire que sa documentation soit parfaitement claire, précise et soignée.
+il est nécessaire que sa documentation soit parfaitement claire, précise et soignée.
 Cela permet aussi de démontrer l'efficacité de l'outil s'il est capable générer
 sa propre documentation.
 
@@ -979,10 +979,10 @@ avec =ohow=.
 Comme expliqué dans le paragraphe sur l'extension {{{wikiext(content)}}} de la section
 [[sec:cdc-ohow]], il doit être possible d'inclure le contenu de chaque wiki dans un fichier
 spécial : le /template/ (ou /patron/). Ces fichiers sont différents dans le sens où ils
-contiennent une (ou plusieurs) occurence(s) de cette extension.
+contiennent une (ou plusieurs) occurrence(s) de cette extension.
 
 Cependant, toujours afin de rester dans l'idée que chaque programme ne doit faire
-qu'une seule chose[fn:9], il a été décidé que la fonction d'insetion de /contenu/
+qu'une seule chose[fn:9], il a été décidé que la fonction d'insertion de /contenu/
 dans un template doit être le but d'un outil distinct. En effet, =ohow= est un
 /compilateur wikicréole \rightarrow {{{html}}}/ : celui-ci prend donc en entrée "du code
 wikicréole" et sort "du code {{{html}}} équivalent", alors que la fonction
@@ -990,7 +990,7 @@ qui /"inline"/ (insère) un wiki dans son template est une fonction qui prend en
 entrée "deux codes wikicréole" et sort "un code wikicréole (le second dans le
 premier)".
 
-Ce sont donc deux fonctionalités /complètement orthogonales/ (c'est-à-dire
+Ce sont donc deux fonctionnalités /complètement orthogonales/ (c'est-à-dire
 que l'on peut très bien utiliser l'une sans l'autre) pour deux outils
 /bien distincts/. L'outil donc chargé /d'inline/ un wiki dans un template
 est donc /wiki_in_template/[fn:20], abrégé =wit=.
@@ -1018,7 +1018,7 @@ En effet, pour deux templates ~t1.wiki~ et ~t2.wiki~ (contenant chacun une seule
 balise {{{wikiext(content)}}}) et un wiki ~content.wiki~, insérer ce dernier dans
 le premier template puis dans le second revient à exécuter le code shell du listing
 [[lst:wiki-t1-t2]]. Cette commande produit le résultat escompté sur ~stdout~ (que l'on
-peut éventuellement rediriger facilemnt vers un fichier de sortie).
+peut éventuellement rediriger facilement vers un fichier de sortie).
 
 #+NAME: lst:wiki-t1-t2
 #+CAPTION: Commande d'insertion d'un wiki dans deux templates.
@@ -1225,7 +1225,7 @@ avec {{{travis}}}. Ce job doit être composé des /phases/ suivantes :
     ainsi générées.
 - /Post-build tests/ :: après la phase précédente, il faut vérifier que :
   - toutes les compilations ont terminées avec succès (pas d'erreur de syntaxe,
-    d'utilisation de fonctionalités dépréciées, etc.),
+    d'utilisation de fonctionnalités dépréciées, etc.),
   - l'outil de détection de liens morts n'en a trouvé aucun.
 - /Deploy/ :: enfin, si les tests post-compilation sont tous passés, il faut
               déployer le site généré sur GitHub Pages, c'est-à-dire en poussant
@@ -1565,7 +1565,7 @@ wiki. Sa dernière version en date est la =1.0=.
 
 *** Standard
 La figure [[fig:creole-cheatsheet]] résume le standard wikicréole. Noter que cette
-image ommet de parler du carctère d'échappement ~~~ qui permet de ne pas interpréter
+image omet de parler du caractère d'échappement ~~~ qui permet de ne pas interpréter
 l'élément qu'il précède.
 
 #+NAME: fig:creole-cheatsheet
@@ -1586,7 +1586,7 @@ Le tableau [[tab:links]] liste les syntaxes de liens ajoutées et le tableau
 [[tab:abbr]] les abréviations disponibles.
 
 #+begin_note
-Une ancienne syntaxe dont BeSport souhaitait se débarasser permettait d'identifier
+Une ancienne syntaxe dont BeSport souhaitait se débarrasser permettait d'identifier
 un wiki avec un identifiant unique : {{{wikilink(wiki(id):page)}}}. Cette syntaxe
 étant assez obscure pour le lecteur (~wiki(12)~ est moins explicite que ~wiki("eliom")~),
 il a été décidé qu'elle ne serait plus maintenue.
@@ -1595,14 +1595,14 @@ il a été décidé qu'elle ne serait plus maintenue.
 #+NAME: tab:links
 #+CAPTION: Syntaxes de liens ajoutées par le projet Ocsigen.
 #+begin_table
-|-----------------------------------+-----------------------------------------------|
-| Syntaxe                           | Description                                   |
-|-----------------------------------+-----------------------------------------------|
-| {{{wikilink(wiki("name"):page)}}} | Lien vers la ~page~ du wiki ~name~.           |
-| {{{wikilink(wiki:page)}}}         | Lien vers la ~page~ du wiki courant.          |
-| {{{wikilink(site:href)}}}         | Lien relatif à la racine du site.             |
-| {{{wikilink(href:path)}}}         | Valeur de l'attibut ~href~ du lien explicite. |
-|-----------------------------------+-----------------------------------------------|
+|-----------------------------------+------------------------------------------------|
+| Syntaxe                           | Description                                    |
+|-----------------------------------+------------------------------------------------|
+| {{{wikilink(wiki("name"):page)}}} | Lien vers la ~page~ du wiki ~name~.            |
+| {{{wikilink(wiki:page)}}}         | Lien vers la ~page~ du wiki courant.           |
+| {{{wikilink(site:href)}}}         | Lien relatif à la racine du site.              |
+| {{{wikilink(href:path)}}}         | Valeur de l'attribut ~href~ du lien explicite. |
+|-----------------------------------+------------------------------------------------|
 #+end_table
 
 #+NAME: tab:abbr
@@ -1625,21 +1625,21 @@ Le code wikicréole du listing [[lst:wiki-def-list]] peut ainsi générer la lis
 de définitions suivante :
 
 #+LaTeX: \begin{exampleffbox}{}\footnotesize
-- Ben Kenobi :: Humain --- Jedi
-- Général Grievous :: Robot --- Sith
-- Anakin Skywalker/Dark Vador :: C'est compliqué... --- ...oh oui, très compliqué...
+- A :: définition de A
+- B :: définition de B
+- C :: définition de C
 #+LaTeX: \end{exampleffbox}
 
 #+NAME: lst:wiki-def-list
 #+CAPTION: Une liste de définitions en wikicréole (non-standard).
 #+begin_listing
 #+BEGIN_SRC wiki
-  ;Ben Kenobi
-  :Humain --- Jedi
-  ;Général Grievous
-  :Robot --- Sith
-  ;Anakin Skywalker/Dark Vador
-  :C'est compliqué... --- ...oh oui, très compliqué...
+  ;A
+  :définition de A
+  ;B
+  :définition de B
+  ;C
+  :définition de C
 #+END_SRC
 #+end_listing
 

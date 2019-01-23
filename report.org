@@ -1550,12 +1550,99 @@ n'impacte pas la validité de l'infrastructure mise en place et la validité des
 résultats.
 
 * Conclusion du stage
+Pour résumer en quelques phrases, à mon arrivée chez BeSport, la refonte de
+l'outil de documentation du projet Ocsigen m'a été confiée. L'outil précédemment
+utilisé (html_of_wiki 1.0) était lourd, monolithique, peu flexible et ne
+permettait pas au différents mainteneurs de gérer leur documentation comme ils
+le souhaitent.
 
+Les premiers jours étaient dédiés à la prise en main le site https://ocsigen.org
+et à l'expérimentation avec les différents projets composant le projet Ocsigen.
+Par la suite, il a fallu comprendre la codebase de html_of_wiki, dont certaines
+parties ont plus de dix ans. La première attente de mon maître de stage était la
+compréhension rapide et globale de ce code.
 
-#+BEGIN_EXPORT latex
-\pagebreak
-\pagecolor{blue!03}
-#+END_EXPORT
+Une fois cela terminé, il a été nécessaire de réfléchir pour concevoir
+correctement ce que serait /html_of_wiki 2.0/, ma contribution au projet Ocsigen.
+Il a fallu correctement détecter, analyser et comprendre l'architecture déjà en
+place et concevoir une solution aux différents problèmes, parmi lesquels:
+- la rigidité ;
+- la complexité ;
+- le manque de généricité ;
+- le manque d'automatisation.
+
+-----
+
+La solution trouvée se divise en trois outils, complémentaires. =ohow=, un
+compilateur de wikicréole (format utilisé pour la documentation) générique, sans
+artifices, en accord avec la philosophie Unix. Cet outil, développé en OCaml, un
+langage français puissant, expressif, abouti et élégant, constitue le coeur de
+la solution. Ce compilateur peut, entre autres, compiler chaque wiki de la
+documentation d'un projet indépendamment, sans connaissance des autres pages.
+Cela permet d'isoler la génération de la documentation de chaque version de
+chaque projet, ce qui est essentiel pour garantir la modularité de la solution.
+
+Autour de =ohow= s'articulent deux autres outils : =dop= et
+=quickdop=, tout deux écrits en shell (principalement pour accélérer leur
+développement). Ce premier permet de générer la documentation pour une version
+d'un projet, faisant le lien entre le manuel, la référence de l'{{{api}}} et les
+fichiers statiques automatiquement. =quickdop=, très similaire à =dop=, permet
+lui de faire le lien entre les différentes versions d'un projet donné.
+
+Le développement de ces outils s'est fait assez rapidement et sans réel heurt.
+Cette partie de mon stage a correspondu parfaitement à mes attentes :
+l'utilisation d'OCaml et la possibilité d'approfondir son usage par
+l'exploitation de fonctionnalités avancées.
+
+-----
+
+La seconde partie du stage était le déploiement de ma solution pour remplacer
+l'infrastructure de documentation existante. Ce déploiement avait deux
+objectifs.
+
+1. Rendre chaque projet Ocsigen responsable de sa documentation.
+2. Automatiser la génération de la documentation au travers de l'utilisation de
+   {{{travis}}}. Ce service d'intégration continue ({{{acr(ci/cd)}}}) permet
+   d'exécuter du code, automatiquement, dans des containers sur des machines
+   distantes, à chaque commit sur le projet. Cela permet par exemple de prévenir
+   la régression en testant continuellement.
+
+Il a donc fallu concevoir et appliquer un plan de déploiement, en tenant compte
+des différentes contraintes techniques (liées à GitHub par exemple), des détails
+propres à chaque projet et à leur documentation et des préférences des
+différents mainteneurs. À chaque commit sur une branche spéciale, crée et dédiée
+à la documentation, html_of_wiki est utilisé dans la /build/ de {{{travis}}}
+pour compiler la documentation. Si cette étape est un succès, alors la
+documentation compilée est déployée sur GitHub Pages, mettant de ce fait à jour
+le site https://ocsigen.org, mais seulement la partie propre au projet en
+question, tout cela automatiquement.
+
+Cette seconde partie du stage était fastidieuse et répétitive, car
+l'installation de {{{travis}}} devait être répétée manuellement pour chaque
+projet. Néanmoins j'ai pu apprendre comment mettre en place un processus
+d'intégration continue et avoir une micro-introduction au métier de DevOp grâce
+aux différentes ressources en ligne que j'ai pu lire.
+
+-----
+
+Au final, le cahier des charges a quasiment été respecté, autant pour
+la partie développement que déploiement. En conséquence, l'infrastructure de
+gestion de la documentation du projet Ocsigen a été mise à jour à 100% et est
+fonctionnelle. Ainsi, les différents mainteneurs et développeurs qui travaillent
+pour le projet Ocsigen pourront plus simplement déployer leur documentation en
+ligne pour les utilisateurs. BeSport étant un utilisateur massif du projet
+Ocsigen, cela devrait indirectement mais positivement impacter la confort des
+développeurs de la startup. De plus, l'amélioration de certaines fonctionnalités
+du site, demandées par ses utilisateurs, comme une barre de recherche, ont été
+ajoutées.
+
+Pour conclure, je suis satisfait de mon expérience chez BeSport, qui répondait à
+toutes les attentes que j'avais de ce stage.
+
+ #+BEGIN_EXPORT latex
+ \pagebreak
+ \pagecolor{blue!03}
+ #+END_EXPORT
 * Annexes
 ** Le Wikicréole<<sec:anx-wikicreole>>
 Le wikicréole est un format de mise en forme de texte de la famille des formats
